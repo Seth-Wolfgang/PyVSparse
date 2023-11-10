@@ -1,0 +1,4 @@
+/src/build
+/src/pybind11
+/src/PyVSparse.egg-info
+/src/classFiles

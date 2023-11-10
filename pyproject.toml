@@ -1,0 +1,41 @@
+[build-system]
+requires = ["scikit-build-core", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+
+[project]
+name = "PyVSparse"
+version = "0.0.1"
+authors = [
+    {name = "Seth Wolfgang", email = "wolfgangseth@gmail.com"}
+]
+description = "A Python wrapper for IVSparse"
+requires-python = ">=3.8"
+
+
+[project.urls]
+IVSparse = "https://github.com/Seth-Wolfgang/IVSparse"
+PyVSparse = "https://github.com/Seth-Wolfgang/PyVSparse"
+
+
+[tool.scikit-build]
+cmake.verbose=true
+logging.level="INFO"
+minimum-version = "0.5"
+cmake.minimum-version = "3.15"
+ninja.minimum-version = "1.10"
+ninja.make-fallback = false
+
+backport.find-python = "3.10"
+sdist.cmake = true
+sdist.include = [
+  "pybind11/tools",
+  "pybind11/include",
+  "pybind11/CMakeLists.txt",
+]
+sdist.exclude = [".github", ".gitignore", ".gitmodules", ".git"]
+
+wheel.packages = ["src/PyVSparse.cpp"]
+build-dir = "src/build/{wheel_tag}"
+wheel.license-files = ["LICENSE"]
+
