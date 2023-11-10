@@ -1,0 +1,5 @@
+/home/sethwolfgang/vscode/IVSparse-dev/pybindBuild/build/temp.linux-x86_64-3.10/PyVSparse/CMakeFiles/run.dir
+/home/sethwolfgang/vscode/IVSparse-dev/pybindBuild/build/temp.linux-x86_64-3.10/PyVSparse/CMakeFiles/PyVSparse.dir
+/home/sethwolfgang/vscode/IVSparse-dev/pybindBuild/build/temp.linux-x86_64-3.10/PyVSparse/CMakeFiles/IVSparse.dir
+/home/sethwolfgang/vscode/IVSparse-dev/pybindBuild/build/temp.linux-x86_64-3.10/PyVSparse/CMakeFiles/edit_cache.dir
+/home/sethwolfgang/vscode/IVSparse-dev/pybindBuild/build/temp.linux-x86_64-3.10/PyVSparse/CMakeFiles/rebuild_cache.dir
