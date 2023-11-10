@@ -2,7 +2,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
-#include "../IVSparse/SparseMatrix"
+#include "IVSparse/SparseMatrix"
 #include <omp.h>
 
 #pragma once

@@ -4,7 +4,7 @@ project(PyVSparse LANGUAGES CXX)
 find_package(pybind11)
 
 set(PROJECT_ROOT "${CMAKE_SOURCE_DIR}/..")
-set(IVSPARSE "${PROJECT_ROOT}/IVSparse")
+set(IVSPARSE "${PROJECT_ROOT}/IVSparse-dev/IVSparse")
 set(SPARSE_MATRIX "${IVSPARSE}/SparseMatrix")
 
 add_custom_target(
@@ -22,12 +22,12 @@ pybind11_add_module(PyVSparse ${CMAKE_SOURCE_DIR}/PyVSparse.cpp)
 add_dependencies(PyVSparse run)
 
 
-add_library(IVSparse STATIC ${SPARSE_MATRIX} )
+add_library(IVSparse STATIC ${IVSPARSE} ${SPARSE_MATRIX} )
 set_target_properties(IVSparse PROPERTIES LINKER_LANGUAGE CXX)
 add_compile_options(-O2 -fvisibility=hidden)
 
 target_link_libraries(PyVSparse PRIVATE pybind11::module pybind11::lto pybind11::windows_extras )
-
+target_include_directories(PyVSparse PRIVATE ${IVSPARSE} ${SPARSE_MATRIX} ${PROJECT_ROOT} ${PROJECT_ROOT}/IVSparse-dev ${PROJECT_ROOT}/IVSparse-dev/IVSparse ${PROJECT_ROOT}/IVSparse-dev/IVSparse/SparseMatrix)
 
 pybind11_extension(PyVSparse)
 

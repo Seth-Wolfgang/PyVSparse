@@ -1,0 +1,4 @@
+[submodule "IVSparse-dev"]
+	path = IVSparse-dev
+	url = git@github.com:Seth-Wolfgang/IVSparse-dev.git
+	branch = WolfgangBranch

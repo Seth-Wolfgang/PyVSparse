@@ -1,4 +1,0 @@
-# ninja log v5
-0	10	1699576366772439578	libIVSparse.a	be3ba0d7ce44b45a
-0	65	0	CMakeFiles/run	c69ecf32aef1e044
-0	65	0	/home/sethwolfgang/vscode/IVSparse-dev/pybindBuild/build/temp.linux-x86_64-3.10/PyVSparse/CMakeFiles/run	c69ecf32aef1e044
