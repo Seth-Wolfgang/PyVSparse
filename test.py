@@ -8,7 +8,7 @@ print("hello world")
 print(dir(PyVSparse))
 # print(dir(PyVSparse.VCSC_i_h_2_Col))
 
-scipySparseMat = sp.sparse.random(10000, 10000, format='csc', dtype = np.int8)
+scipySparseMat = sp.sparse.random(100, 100, format='csc', dtype = np.int8)
 print(scipySparseMat.indices.dtype)
 print(scipySparseMat.data.dtype)
 

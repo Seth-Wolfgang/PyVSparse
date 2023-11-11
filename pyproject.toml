@@ -1,7 +1,23 @@
 [build-system]
-requires = ["scikit-build-core", "pybind11"]
-build-backend = "scikit_build_core.build"
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "ninja",
+    "cmake>=3.12",
+]
+build-backend = "setuptools.build_meta"
 
+[tool.mypy]
+files = "setup.py"
+python_version = "3.10"
+strict = true
+show_error_codes = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["ninja"]
+ignore_missing_imports = true
 
 [project]
 name = "PyVSparse"
@@ -17,25 +33,42 @@ requires-python = ">=3.8"
 IVSparse = "https://github.com/Seth-Wolfgang/IVSparse"
 PyVSparse = "https://github.com/Seth-Wolfgang/PyVSparse"
 
+[tool.cibuildwheel]
+# test-command = "pytest {project}/tests"
+# test-extras = ["test"]
+test-skip = ["*universal2:arm64"]
+# Setuptools bug causes collision between pypy and cpython artifacts
+before-build = "rm -rf /build"
 
-[tool.scikit-build]
-cmake.verbose=true
-logging.level="INFO"
-minimum-version = "0.5"
-cmake.minimum-version = "3.15"
-ninja.minimum-version = "1.10"
-ninja.make-fallback = false
 
-backport.find-python = "3.10"
-sdist.cmake = true
-sdist.include = [
-  "pybind11/tools",
-  "pybind11/include",
-  "pybind11/CMakeLists.txt",
+[tool.ruff]
+src = ["src"]
+
+[tool.ruff.lint]
+extend-select = [
+  "B",           # flake8-bugbear
+  "I",           # isort
+  "ARG",         # flake8-unused-arguments
+  "C4",          # flake8-comprehensions
+  "EM",          # flake8-errmsg
+  "ICN",         # flake8-import-conventions
+  "G",           # flake8-logging-format
+  "PGH",         # pygrep-hooks
+  "PIE",         # flake8-pie
+  "PL",          # pylint
+  "PT",          # flake8-pytest-style
+  "PTH",         # flake8-use-pathlib
+  "RET",         # flake8-return
+  "RUF",         # Ruff-specific
+  "SIM",         # flake8-simplify
+  "T20",         # flake8-print
+  "UP",          # pyupgrade
+  "YTT",         # flake8-2020
+  "EXE",         # flake8-executable
+  "NPY",         # NumPy specific rules
+  "PD",          # pandas-vet
 ]
-sdist.exclude = [".github", ".gitignore", ".gitmodules", ".git"]
-
-wheel.packages = ["src/PyVSparse.cpp"]
-build-dir = "src/build/{wheel_tag}"
-wheel.license-files = ["LICENSE"]
-
+ignore = [
+  "PLR",    # Design related pylint codes
+]
+isort.required-imports = ["from __future__ import annotations"]
