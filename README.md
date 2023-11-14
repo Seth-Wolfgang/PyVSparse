@@ -14,12 +14,16 @@ Dependancies
 Install with Pip by using
 ```
 git clone https://github.com/Seth-Wolfgang/PyVSparse.git
+cd PyVSparse
+git submodule update --init --recursive
+cd ..
 pip install ./PyVSparse
 ```
 or 
 ```
 git clone https://github.com/Seth-Wolfgang/PyVSparse.git
 cd PyVSparse
+git submodule update --init --recursive
 pip install .
 ```
 
