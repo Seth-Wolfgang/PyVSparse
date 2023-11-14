@@ -69,8 +69,8 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
         .def("toEigen", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::toEigen, py::return_value_policy::copy)
         .def("transpose", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::transpose, py::return_value_policy::copy)
         .def("inPlaceTranspose", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::inPlaceTranspose)
-        .def("append", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::append, py::arg("Matrix"))
-        .def("slice", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"))
+        // .def("append", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::append, py::arg("Matrix"))
+        // .def("slice", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"))
         .def(py::self *= int8_t())
         .def(py::self *= uint8_t())
         .def(py::self *= int16_t())
@@ -79,11 +79,9 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
         .def(py::self *= uint32_t())
         .def(py::self *= int64_t())
         .def(py::self *= uint64_t())
-        .def("__repr__", [](const IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self) {
-            std::stringstream ss;
-            ss << self;
-            return ss.str();
-        })
+        // .def("__str__", [](const IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self) {
+            // return self.print();
+        // })
         .def("__copy__", [](const IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self) {
                 return IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>(self);
         })
@@ -151,8 +149,6 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
 
 template <typename T, int compLevel>
 void generateForEachIndexType(py::module& m) {
-
-
 
 
     if constexpr (compLevel == 3) {

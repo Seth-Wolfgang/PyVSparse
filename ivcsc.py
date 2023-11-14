@@ -1,9 +1,12 @@
+from typing import TypeVar
 import PyVSparse
 import scipy as sp
 import numpy as np
 
+# scipyFormats = TypeVar("scipyFormats", sp.sparse.csr_matrix, sp.sparse.csc_matrix, sp.sparse.coo_matrix)
+
 class IVCSC:
-    def __init__(self, scipySparseMat):
+    def __init__(self, scipySparseMat): # add scipySparseMat: scipyFormat as type hint
 
         if scipySparseMat.format == "csc": 
             self.major = "Col" 
@@ -20,70 +23,75 @@ class IVCSC:
         self.wrappedForm = eval(str("PyVSparse.IVCSC__" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)))(scipySparseMat)
         self.byteSize = self.wrappedForm.byteSize
 
+    # def __init__(self, IVSparseMat: IVCSC):
 
-    def __repr__(self):
+
+
+    def __repr__(self) -> None:
         self.wrappedForm.print()
 
-    def sum(self):
+    def sum(self) -> int:
         return self.wrappedForm.sum()
 
-    def trace(self):
+    def trace(self) -> int:
         return self.wrappedForm.trace()
 
-    def outerSum(self):
+    def outerSum(self) -> list[int]:
         return self.wrappedForm.outerSum()
 
-    def innerSum(self):
+    def innerSum(self) -> list[int]:
         return self.wrappedForm.innerSum()
     
-    def maxColCoeff(self):
+    def maxColCoeff(self) -> list[int]:
         return self.wrappedForm.maxColCoeff()
     
-    def maxRowCoeff(self):
+    def maxRowCoeff(self) -> list[int]:
         return self.wrappedForm.maxRowCoeff()
 
-    def minColCoeff(self):
+    def minColCoeff(self) -> list[int]:
         return self.wrappedForm.minColCoeff()
     
-    def minRowCoeff(self):
+    def minRowCoeff(self) -> list[int]:
         return self.wrappedForm.minRowCoeff()
     
-    def norm(self):
+    def norm(self) -> np.double:
         return self.wrappedForm.norm()
     
-    def vectorLength(self, vector):
+    def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toSciPySparse(self):
+    def toSciPySparse(self) -> sp.sparse.matrix:
         return self.wrappedForm.toEigen()
 
-    def transpose(self, inplace = True):
+    def transpose(self, inplace = True): # -> IVCSC:
         return self.wrappedForm.transpose()
     
-    def __imul__(self, other):
-        return self.wrappedForm.__imul__(other)
+    def __imul__(self, other) -> None:
+        self.wrappedForm.__imul__(other)
     
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.wrappedForm.__eq__(other)
     
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return self.wrappedForm.__ne__(other)
     
-    def getValues(self):
+    def getValues(self) -> list[int]:
         return self.wrappedForm.getValues()
     
-    def getIndices(self):
+    def getIndices(self) -> list[int]:
         return self.wrappedForm.getIndices()
     
-    def getCounts(self):
+    def getCounts(self) -> list[int]:
         return self.wrappedForm.getCounts()
     
-    def getNumIndices(self):
+    def getNumIndices(self) -> list[int]:
         return self.wrappedForm.getNumIndices()
     
-    def append(self, matrix):
+    def append(self, matrix) -> None:
         self.wrappedForm.append(matrix)
-    
+
+    def slice(self, start, end): #-> IVCSC:
+        return self.wrappedForm.slice(start, end)
 
     def _CDTypeConvert(self, dtype: np.dtype) -> str:
         match dtype:
