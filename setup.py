@@ -134,9 +134,6 @@ setup(
     ext_modules=[CMakeExtension("PyVSparse")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    package_data={
-        '' : ["/build/PyVSparseExec.cpython-310-x86_64-linux-gnu.so"]
-    },
     # extras_require={"test": ["pytest>=6.0"]},
     python_requires=">=3.10",
 )

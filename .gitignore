@@ -2,3 +2,6 @@
 /src/pybind11
 /src/PyVSparse.egg-info
 /src/classFiles
+__pycache__
+build
+PyVSparse.egg-info
