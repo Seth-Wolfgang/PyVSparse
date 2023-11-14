@@ -5,7 +5,7 @@ import numpy as np
 
 
 class VCSC:
-    def __init__(self, scipySparseMat):
+    def __init__(self, scipySparseMat: sp.sparse.matrix):
 
         if scipySparseMat.format == "csc": 
             self.major = "Col" 
@@ -13,14 +13,14 @@ class VCSC:
             self.major = "Row"
 
         self.indexT = type(scipySparseMat.indices[0])
-        self.dtype = scipySparseMat.dtype
-        self.rows = scipySparseMat.shape[0]
-        self.cols = scipySparseMat.shape[1]
+        self.dtype: np.dtype = scipySparseMat.dtype
+        self.rows: np.uint32 = scipySparseMat.shape[0]
+        self.cols: np.uint32 = scipySparseMat.shape[1]
         self.shape = scipySparseMat.shape
-        self.inner = scipySparseMat.indices
-        self.outer = scipySparseMat.indptr
+        self.inner: np.uint32 = scipySparseMat.indices
+        self.outer: np.uint32 = scipySparseMat.indptr
         self.wrappedForm = eval(str("PyVSparse.VCSC__" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)))(scipySparseMat)
-        self.byteSize = self.wrappedForm.byteSize
+        self.byteSize: np.uint64 = self.wrappedForm.byteSize
 
 
     def __repr__(self):
@@ -84,7 +84,7 @@ class VCSC:
         return self.wrappedForm.getNumIndices()
     
 
-    def _CDTypeConvert(self, dtype):
+    def _CDTypeConvert(self, dtype: np.dtype) -> str:
         match dtype:
             case np.int8:
                 return "int8_t"
@@ -106,3 +106,4 @@ class VCSC:
                 return "float"
             case np.float64:
                 return "double"
+        return "unknown"

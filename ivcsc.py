@@ -2,7 +2,6 @@ import PyVSparse
 import scipy as sp
 import numpy as np
 
-
 class IVCSC:
     def __init__(self, scipySparseMat):
 
@@ -82,11 +81,11 @@ class IVCSC:
     def getNumIndices(self):
         return self.wrappedForm.getNumIndices()
     
-    def append(self, type(self.wrappedForm))
-        self.wrappedForm.append()
+    def append(self, matrix):
+        self.wrappedForm.append(matrix)
     
 
-    def _CDTypeConvert(self, dtype):
+    def _CDTypeConvert(self, dtype: np.dtype) -> str:
         match dtype:
             case np.int8:
                 return "int8_t"
@@ -108,3 +107,4 @@ class IVCSC:
                 return "float"
             case np.float64:
                 return "double"
+        return "unknown"
