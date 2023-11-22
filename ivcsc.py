@@ -15,12 +15,12 @@ class IVCSC:
 
         self.indexT = type(scipySparseMat.indices[0])
         self.dtype = scipySparseMat.dtype
-        self.rows = scipySparseMat.shape[0]
-        self.cols = scipySparseMat.shape[1]
+        self.rows: int = scipySparseMat.shape[0]
+        self.cols: int = scipySparseMat.shape[1]
         self.shape = scipySparseMat.shape
         self.inner = scipySparseMat.indices
         self.outer = scipySparseMat.indptr
-        self.wrappedForm = eval(str("PyVSparse.IVCSC__" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)))(scipySparseMat)
+        self.wrappedForm = eval(str("PyVSparse.IVCSC_" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)))(scipySparseMat)
         self.byteSize = self.wrappedForm.byteSize
 
     # def __init__(self, IVSparseMat: IVCSC):
@@ -29,6 +29,9 @@ class IVCSC:
 
     def __repr__(self) -> None:
         self.wrappedForm.print()
+
+    def __str__(self) -> str:
+        return self.wrappedForm.__str__()
 
     def sum(self) -> int:
         return self.wrappedForm.sum()
@@ -60,13 +63,16 @@ class IVCSC:
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toSciPySparse(self) -> sp.sparse.matrix:
+    def toCSC(self):
         return self.wrappedForm.toEigen()
 
     def transpose(self, inplace = True): # -> IVCSC:
         return self.wrappedForm.transpose()
+
+    def shape(self) -> tuple[int, int]:
+        return (self.rows, self.cols)
     
-    def __imul__(self, other) -> None:
+    def __imul__(self, other):
         self.wrappedForm.__imul__(other)
     
     def __eq__(self, other) -> bool:
@@ -74,6 +80,9 @@ class IVCSC:
     
     def __ne__(self, other) -> bool:
         return self.wrappedForm.__ne__(other)
+
+    # def __iter__(self):
+        # return self.wrappedForm.__iter__()
     
     def getValues(self) -> list[int]:
         return self.wrappedForm.getValues()
@@ -92,7 +101,8 @@ class IVCSC:
 
     def slice(self, start, end): #-> IVCSC:
         return self.wrappedForm.slice(start, end)
-
+    
+    #TODO find a better method of doing this
     def _CDTypeConvert(self, dtype: np.dtype) -> str:
         match dtype:
             case np.int8:

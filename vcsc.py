@@ -5,13 +5,15 @@ import numpy as np
 
 
 class VCSC:
-    def __init__(self, scipySparseMat: sp.sparse.matrix):
+    def __init__(self, scipySparseMat):
 
         if scipySparseMat.format == "csc": 
             self.major = "Col" 
         else:
             self.major = "Row"
-
+        if(scipySparseMat.nnz == 0):
+            raise ValueError("Cannot construct VCSC from empty matrix")
+    
         self.indexT = type(scipySparseMat.indices[0])
         self.dtype: np.dtype = scipySparseMat.dtype
         self.rows: np.uint32 = scipySparseMat.shape[0]
@@ -19,13 +21,26 @@ class VCSC:
         self.shape = scipySparseMat.shape
         self.inner: np.uint32 = scipySparseMat.indices
         self.outer: np.uint32 = scipySparseMat.indptr
-        self.wrappedForm = eval(str("PyVSparse.VCSC__" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)))(scipySparseMat)
+        self.wrappedForm = eval(str("PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)))(scipySparseMat)
         self.byteSize: np.uint64 = self.wrappedForm.byteSize
+        self.iter = None
 
 
     def __repr__(self) -> None:
-        self.wrappedForm.print()
+        self.wrappedForm.__repr__()
 
+    def __str__(self) -> str:
+        return self.wrappedForm.__str__()
+
+    def __iter__(self, outerIndex: int):
+        self.iter = self.wrappedForm.__iter__(outerIndex)
+        return self.iter
+    
+    def __next__(self):    
+        if(self.iter):
+            return self.iter.__next__()
+        else:
+            raise StopIteration
     def sum(self) -> int:
         return self.wrappedForm.sum()
 
@@ -56,13 +71,13 @@ class VCSC:
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toSciPySparse(self) -> sp.sparse.matrix:
+    def toCSC(self):
         return self.wrappedForm.toEigen()
 
     def transpose(self, inplace = True): # -> VCSC:
         return self.wrappedForm.transpose()
     
-    def __imul__(self, other) -> None:
+    def __imul__(self, other):
         self.wrappedForm.__imul__(other)
     
     def __eq__(self, other) -> bool:
@@ -89,6 +104,7 @@ class VCSC:
     def slice(self, start, end): # -> VCSC:
         return self.wrappedForm.slice(start, end)
 
+    #TODO find a better method of doing this
     def _CDTypeConvert(self, dtype: np.dtype) -> str:
         match dtype:
             case np.int8:
