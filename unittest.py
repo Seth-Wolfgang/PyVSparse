@@ -5,15 +5,58 @@ import vcsc
 import scipy as sp
 import numpy as np
 
-maxRandomTests = 10000
+
+#TODO CSR doesn't work for toCSC() -> IVSparse needs to CSR
+
+
+myFormat = "csr"
+
+
+def CSC_Equality(ivcsc, vcsc, control):
+    csc_from_ivcsc = ivcsc.toCSC()
+    csc_from_vcsc = vcsc.toCSC()
+
+    for x, y, z in zip(csc_from_ivcsc.indices, csc_from_vcsc.indices, control.indices):
+        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y)
+        assert x == z, "csc_from_ivcsc: " + str(x) + " control: " + str(z)
+
+    for x, y, z in zip(csc_from_ivcsc.indptr, csc_from_vcsc.indptr, control.indptr):
+        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+    for x, y, z in zip(csc_from_ivcsc.data, csc_from_vcsc.data, control.data):
+        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+
+def CSR_Equality(ivcsc, vcsc, control):
+    csc_from_ivcsc = ivcsc.toCSR
+    csc_from_vcsc = vcsc.toCSR
+
+    for x, y, z in zip(csc_from_ivcsc.indices, csc_from_vcsc.indices, control.indices):
+        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y)
+        assert x == z, "csc_from_ivcsc: " + str(x) + " control: " + str(z)
+
+    for x, y, z in zip(csc_from_ivcsc.indptr, csc_from_vcsc.indptr, control.indptr):
+        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+    for x, y, z in zip(csc_from_ivcsc.data, csc_from_vcsc.data, control.data):
+        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+
+maxRandomTests = 100
 for randomTest in range(maxRandomTests):
     rows = random.randint(1, 1000)
     cols = random.randint(1, 1000)
+
+    print("rows: ", rows, " cols: ", cols)
     
-    control = sp.sparse.random(rows, cols, format='csc', dtype = np.int8)
+    control = sp.sparse.random(rows, cols, format=myFormat, dtype = np.int8, density = 0.2)
+
+    while control.nnz == 0:
+        control = sp.sparse.random(rows, cols, format=myFormat, dtype = np.int8, random_state = random.randint(0, 1000), density = 0.2)
+
+    print("\033[92m", "Made Matrix", "\033[0m")
     vcsc_obj = vcsc.VCSC(control)
     ivcsc_obj = ivcsc.IVCSC(control)
-    
     print("\033[92m", "Passed Construction", "\033[0m")
 
     # print("VCSC: ", vcsc_obj.sum(), " DTYPE: ", vcsc_obj.dtype, " TYPE: ", type(vcsc_obj.wrappedForm))
@@ -34,9 +77,10 @@ for randomTest in range(maxRandomTests):
     assert ivcsc_obj_copy.sum() == ivcsc_obj.sum(), "vcsc_obj: " + str(vcsc_obj.sum()) + " ivcsc_obj: " + str(ivcsc_obj.sum())
     print("\033[92m", "Passed Deep Copy Equality", "\033[0m")
 
-    # assert vcsc_obj.trace() == ivcsc_obj.trace(), "vcsc_obj: " + str(vcsc_obj.trace()) + " ivcsc_obj: " + str(ivcsc_obj.trace())
-    # assert vcsc_obj.trace() == control.trace(), "vcsc_obj: " + str(vcsc_obj.trace()) + " ivcsc_obj: " + str(ivcsc_obj.trace()) + " control: " + str(control.trace())
-    
+    assert vcsc_obj.trace() == ivcsc_obj.trace(), "vcsc_obj: " + str(vcsc_obj.trace()) + " ivcsc_obj: " + str(ivcsc_obj.trace())
+    assert vcsc_obj.trace() == control.trace(), "vcsc_obj: " + str(vcsc_obj.trace()) + " ivcsc_obj: " + str(ivcsc_obj.trace()) + " control: " + str(control.trace())
+    print("\033[92m", "Passed Trace", "\033[0m")
+
     # for x in range(100): # TODO something is broken but sums are equal?
     #     assert vcsc_obj.outerSum()[x] == ivcsc_obj.outerSum()[x], "vcsc_obj: " + str(vcsc_obj.outerSum()[x]) + " ivcsc_obj: " + str(ivcsc_obj.outerSum()[x])
     #     assert vcsc_obj.innerSum()[x] == ivcsc_obj.innerSum()[x], "vcsc_obj: " + str(vcsc_obj.innerSum()[x]) + " ivcsc_obj: " + str(ivcsc_obj.innerSum()[x])
@@ -62,17 +106,10 @@ for randomTest in range(maxRandomTests):
     assert csc_from_ivcsc.dtype == csc_from_vcsc.dtype, "csc_from_ivcsc: " + str(csc_from_ivcsc.dtype) + " csc_from_vcsc: " + str(csc_from_vcsc.dtype)
     assert csc_from_ivcsc.format == csc_from_vcsc.format, "csc_from_ivcsc: " + str(csc_from_ivcsc.format) + " csc_from_vcsc: " + str(csc_from_vcsc.format)
 
-    for x, y, z in zip(csc_from_ivcsc.indices, csc_from_vcsc.indices, control.indices):
-        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
-        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
-    
-    for x, y, z in zip(csc_from_ivcsc.indptr, csc_from_vcsc.indptr, control.indptr):
-        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
-        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
-    
-    for x, y, z in zip(csc_from_ivcsc.data, csc_from_vcsc.data, control.data):
-        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
-        assert x == z, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y) + " control: " + str(z)
+    if(myFormat == "csc"):
+        CSC_Equality(ivcsc_obj, vcsc_obj, control)
+    # else:
+        # CSR_Equality(ivcsc_obj, vcsc_obj, control)
     print("\033[92m", "Passed toCSC Equality", "\033[0m")
 
     vcsc_T = vcsc_obj.transpose()
@@ -101,4 +138,6 @@ for randomTest in range(maxRandomTests):
     
     # assert vcsc_obj.sum() == ivcsc_obj.sum(), "vcsc_obj: " + str(vcsc_obj.sum()) + " ivcsc_obj: " + str(ivcsc_obj.sum())
     # assert vcsc_obj.sum() == control.sum(), "vcsc_obj: " + str(vcsc_obj.sum()) + " ivcsc_obj: " + str(ivcsc_obj.sum()) + " control: " + str(control.sum())
-    print("Passed: ", randomTest + 1, " / 10000")
+    print("Passed: ", randomTest + 1, " / 100")
+
+

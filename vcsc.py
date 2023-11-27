@@ -1,31 +1,39 @@
 
+from typing import overload
 import PyVSparse
 import scipy as sp
 import numpy as np
 
 
 class VCSC:
-    def __init__(self, scipySparseMat):
 
-        if scipySparseMat.format == "csc": 
-            self.major = "Col" 
-        else:
-            self.major = "Row"
-        if(scipySparseMat.nnz == 0):
+    def __init__(self, spmat, major: str = "col"):
+
+        self.major = major.lower().capitalize()
+        self.dtype: np.dtype = spmat.dtype
+        if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
+
+        
+        if(spmat.format == "csc"):
+            self.indexT = type(spmat.indices[0])
+            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
+
+            self._CSconstruct(moduleName, spmat)
+
+        elif(spmat.format == "csr"):
+            self.indexT = type(spmat.indices[0])
+            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
+
+            self._CSconstruct(moduleName, spmat)    
     
-        self.indexT = type(scipySparseMat.indices[0])
-        self.dtype: np.dtype = scipySparseMat.dtype
-        self.rows: np.uint32 = scipySparseMat.shape[0]
-        self.cols: np.uint32 = scipySparseMat.shape[1]
-        self.shape = scipySparseMat.shape
-        self.inner: np.uint32 = scipySparseMat.indices
-        self.outer: np.uint32 = scipySparseMat.indptr
-        self.wrappedForm = eval(str("PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)))(scipySparseMat)
-        self.byteSize: np.uint64 = self.wrappedForm.byteSize
-        self.iter = None
+        elif(spmat.format == "coo"):
+        
+            self.indexT = type(spmat.col[0])
+            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)    
 
-
+            self._COOconstruct(moduleName, spmat)
+    
     def __repr__(self) -> None:
         self.wrappedForm.__repr__()
 
@@ -128,3 +136,30 @@ class VCSC:
             case np.float64:
                 return "double"
         return "unknown"
+    
+    def _CSconstruct(self, moduleName: str, spmat):
+        self.indexT = type(spmat.indices[0])
+        self.rows: np.uint32 = spmat.shape[0]
+        self.cols: np.uint32 = spmat.shape[1]
+        self.nnz = spmat.nnz
+        self.shape = spmat.shape
+        self.inner: np.uint32 = spmat.indices
+        self.outer: np.uint32 = spmat.indptr
+        self.wrappedForm = eval(str(moduleName))(spmat)
+        self.byteSize: np.uint64 = self.wrappedForm.byteSize
+
+    def _COOconstruct(self, moduleName: str, spmat):
+        self.rows: np.uint32 = spmat.shape[0]
+        self.cols: np.uint32 = spmat.shape[1]
+        self.nnz = spmat.nnz
+        self.shape = spmat.shape
+        
+        if(self.major == "Col"):
+            self.inner: np.uint32 = spmat.row
+            self.outer: np.uint32 = spmat.col
+        else:
+            self.inner: np.uint32 = spmat.col
+            self.outer: np.uint32 = spmat.row
+
+        self.wrappedForm = eval(str(moduleName))((spmat.row, spmat.col, spmat.data), self.rows, self.cols, spmat.nnz)
+        self.byteSize: np.uint64 = self.wrappedForm.byteSize

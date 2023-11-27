@@ -64,7 +64,7 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
     mat.def("maxRowCoeff", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::maxRowCoeff, py::return_value_policy::copy);
     mat.def("minRowCoeff", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::minRowCoeff, py::return_value_policy::copy);
     mat.def("minColCoeff", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::minColCoeff, py::return_value_policy::copy);
-    mat.def("trace", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::trace, py::return_value_policy::copy);
+    mat.def("trace", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self) { return self.trace(); }, py::return_value_policy::copy);
     mat.def("sum", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self) { return self.sum(); }, py::return_value_policy::copy);
     mat.def("norm", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::norm, py::return_value_policy::copy);
     mat.def("vectorLength", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::vectorLength, py::return_value_policy::copy);
@@ -72,13 +72,8 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
     mat.def("toEigen", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::toEigen, py::return_value_policy::copy);
     mat.def("transpose", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::transpose, py::return_value_policy::copy);
     mat.def("inPlaceTranspose", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::inPlaceTranspose);
-    mat.def("append", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& other) {
-        self.append(other);
-            }, py::arg("other"), py::keep_alive<1, 2>());
-    mat.def("append", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, Eigen::SparseMatrix<T>& other) {
-        self.append(other);
-            }, py::arg("other"), py::keep_alive<1, 2>());
-
+    mat.def("append", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
+    // mat.def("append", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, Eigen::SparseMatrix<T>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
     mat.def("slice", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::move);
     mat.def(py::self *= int8_t());
     mat.def(py::self *= uint8_t());

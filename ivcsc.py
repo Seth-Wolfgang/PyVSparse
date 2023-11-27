@@ -6,27 +6,22 @@ import numpy as np
 # scipyFormats = TypeVar("scipyFormats", sp.sparse.csr_matrix, sp.sparse.csc_matrix, sp.sparse.coo_matrix)
 
 class IVCSC:
-    def __init__(self, scipySparseMat): # add scipySparseMat: scipyFormat as type hint
+    def __init__(self, spmat, major: str = "col"): # add scipySparseMat: scipyFormat as type hint
 
-        if scipySparseMat.format == "csc": 
-            self.major = "Col" 
-        else:
-            self.major = "Row"
+        self.major = major.lower().capitalize()
+        self.dtype: np.dtype = spmat.dtype
+        moduleName = "PyVSparse.IVCSC_" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)
+        if(spmat.nnz == 0):
+            raise ValueError("Cannot construct IVCSC from empty matrix")
 
-        self.indexT = type(scipySparseMat.indices[0])
-        self.dtype = scipySparseMat.dtype
-        self.rows: int = scipySparseMat.shape[0]
-        self.cols: int = scipySparseMat.shape[1]
-        self.shape = scipySparseMat.shape
-        self.inner = scipySparseMat.indices
-        self.outer = scipySparseMat.indptr
-        self.wrappedForm = eval(str("PyVSparse.IVCSC_" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)))(scipySparseMat)
-        self.byteSize = self.wrappedForm.byteSize
-
-    # def __init__(self, IVSparseMat: IVCSC):
-
-
-
+        
+        if(spmat.format == "csc"):
+            self._CSconstruct(moduleName, spmat)    
+        elif(spmat.format == "csr"):
+            self._CSconstruct(moduleName, spmat)        
+        elif(spmat.format == "coo"):
+            self._COOconstruct(moduleName, spmat)
+        
     def __repr__(self) -> None:
         self.wrappedForm.print()
 
@@ -69,7 +64,7 @@ class IVCSC:
     def transpose(self, inplace = True): # -> IVCSC:
         return self.wrappedForm.transpose()
 
-    def shape(self) -> tuple[int, int]:
+    def shape(self) -> tuple[np.uint32, np.uint32]:
         return (self.rows, self.cols)
     
     def __imul__(self, other):
@@ -126,3 +121,37 @@ class IVCSC:
             case np.float64:
                 return "double"
         return "unknown"
+
+    def _CSconstruct(self, moduleName: str, spmat):
+        self.indexT: np.dtype = type(spmat.indices[0])
+        self.rows: np.uint32 = spmat.shape[0]
+        self.cols: np.uint32 = spmat.shape[1]
+        self.nnz = spmat.nnz
+        self.shape = spmat.shape
+
+
+        if(self.major == "Col"):
+            self.inner: np.uint32 = spmat.indices
+            self.outer: np.uint32 = spmat.indptr
+        else:
+            self.inner: np.uint32 = spmat.indptr
+            self.outer: np.uint32 = spmat.indices
+        
+        self.wrappedForm = eval(str(moduleName))(spmat)
+        self.byteSize: np.uint64 = self.wrappedForm.byteSize
+
+    def _COOconstruct(self, moduleName: str, spmat):
+        self.rows: np.uint32 = spmat.shape[0]
+        self.cols: np.uint32 = spmat.shape[1]
+        self.nnz = spmat.nnz
+        self.shape = spmat.shape
+        
+        if(self.major == "Col"):
+            self.inner: np.uint32 = spmat.row
+            self.outer: np.uint32 = spmat.col
+        else:
+            self.inner: np.uint32 = spmat.col
+            self.outer: np.uint32 = spmat.row
+
+        self.wrappedForm = eval(str(moduleName))((spmat.row, spmat.col, spmat.data), self.rows, self.cols, spmat.nnz)
+        self.byteSize: np.uint64 = self.wrappedForm.byteSize
