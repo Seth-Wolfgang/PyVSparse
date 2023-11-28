@@ -4,38 +4,37 @@ import PyVSparse
 import scipy as sp
 import numpy as np
 
-
 class VCSC:
 
-    def __init__(self, spmat, major: str = "col"):
+    def __init__(self, spmat, major: str = "col", indexT: np.dtype = np.dtype(np.uint32)):
 
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
+        self.indexT: np.dtype = indexT
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
 
         
         if(spmat.format == "csc"):
-            self.indexT = type(spmat.indices[0])
-            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
+            # self.indexT = type(spmat.indices[0])
+            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
 
             self._CSconstruct(moduleName, spmat)
 
         elif(spmat.format == "csr"):
-            self.indexT = type(spmat.indices[0])
-            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
+            # self.indexT = type(spmat.indices[0])
+            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
 
             self._CSconstruct(moduleName, spmat)    
     
         elif(spmat.format == "coo"):
-        
-            self.indexT = type(spmat.col[0])
-            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_u" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)    
+            # self.indexT = type(spmat.col[0])
+            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)    
 
             self._COOconstruct(moduleName, spmat)
     
-    def __repr__(self) -> None:
-        self.wrappedForm.__repr__()
+    def __repr__(self):
+        return self.wrappedForm.__repr__()
 
     def __str__(self) -> str:
         return self.wrappedForm.__str__()
@@ -135,6 +134,7 @@ class VCSC:
                 return "float"
             case np.float64:
                 return "double"
+        print("Unknown dtype: ", dtype)
         return "unknown"
     
     def _CSconstruct(self, moduleName: str, spmat):

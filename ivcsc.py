@@ -13,7 +13,6 @@ class IVCSC:
         moduleName = "PyVSparse.IVCSC_" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct IVCSC from empty matrix")
-
         
         if(spmat.format == "csc"):
             self._CSconstruct(moduleName, spmat)    

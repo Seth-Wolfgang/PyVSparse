@@ -223,14 +223,14 @@ void generateForEachIndexType(py::module& m) {
         declareSelfFunc<T, uint64_t, 3, true>(m);
     }
     else {
-        // declareSelfFunc<T, uint8_t, 2, false>(m);
-        // declareSelfFunc<T, uint8_t, 2, true>(m);
-        // declareSelfFunc<T, uint16_t, 2, false>(m);
-        // declareSelfFunc<T, uint16_t, 2, true>(m);
+        declareSelfFunc<T, uint8_t, 2, false>(m);
+        declareSelfFunc<T, uint8_t, 2, true>(m);
+        declareSelfFunc<T, uint16_t, 2, false>(m);
+        declareSelfFunc<T, uint16_t, 2, true>(m);
         declareSelfFunc<T, uint32_t, 2, false>(m);
         declareSelfFunc<T, uint32_t, 2, true>(m);
-        // declareSelfFunc<T, uint64_t, 2, false>(m);
-        // declareSelfFunc<T, uint64_t, 2, true>(m);
+        declareSelfFunc<T, uint64_t, 2, false>(m);
+        declareSelfFunc<T, uint64_t, 2, true>(m);
     }
 }
 
