@@ -40,8 +40,8 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
     uniqueName += isCol;
 
     py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> mat(m, uniqueName.c_str());
-    mat.def(py::init<Eigen::SparseMatrix<T>& >());
-    mat.def(py::init<Eigen::SparseMatrix<T, Eigen::RowMajor>& >());
+    mat.def(py::init<Eigen::SparseMatrix<T>& >(), py::arg("mat"), py::keep_alive<1, 2>());
+    mat.def(py::init<Eigen::SparseMatrix<T, Eigen::RowMajor>& >(), py::arg("mat"), py::keep_alive<1, 2>());
     mat.def(py::init<T*, indexT*, indexT*, uint32_t, uint32_t, uint32_t>());
     mat.def(py::init<std::vector<std::tuple<indexT, indexT, T>>&, uint32_t, uint32_t, uint32_t>());
     mat.def(py::init<std::unordered_map<T, std::vector<indexT>>*, uint32_t, uint32_t>()); //<std::unordered_map<T, std::vector<indexT>>[], uint32_t, uint32_t> ;

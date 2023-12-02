@@ -11,17 +11,20 @@ class VCSC:
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
         self.indexT: np.dtype = indexT
+        print("SPMat: ", spmat)
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
 
         
         if(spmat.format == "csc"):
+            self.major = "Col"
             # self.indexT = type(spmat.indices[0])
             moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
 
             self._CSconstruct(moduleName, spmat)
 
         elif(spmat.format == "csr"):
+            self.major = "Row"
             # self.indexT = type(spmat.indices[0])
             moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
 
@@ -78,8 +81,12 @@ class VCSC:
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toCSC(self):
+    def toCSC(self) -> sp.sparse.csc_matrix:
         return self.wrappedForm.toEigen()
+    
+    # def toCSR(self) -> sp.sparse.csr_matrix:
+    #     return self.toCSC().toCSR()
+        # return self.wrappedForm.toEigen()
 
     def transpose(self, inplace = True): # -> VCSC:
         return self.wrappedForm.transpose()
@@ -145,6 +152,7 @@ class VCSC:
         self.shape = spmat.shape
         self.inner: np.uint32 = spmat.indices
         self.outer: np.uint32 = spmat.indptr
+        print("Constructing VCSC with moduleName: ", moduleName)
         self.wrappedForm = eval(str(moduleName))(spmat)
         self.byteSize: np.uint64 = self.wrappedForm.byteSize
 

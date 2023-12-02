@@ -15,8 +15,10 @@ class IVCSC:
             raise ValueError("Cannot construct IVCSC from empty matrix")
         
         if(spmat.format == "csc"):
+            self.major = "Col"
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "csr"):
+            self.major = "Row"
             self._CSconstruct(moduleName, spmat)        
         elif(spmat.format == "coo"):
             self._COOconstruct(moduleName, spmat)
@@ -57,8 +59,12 @@ class IVCSC:
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toCSC(self):
+    def toCSC(self) -> sp.sparse.csc_matrix:
         return self.wrappedForm.toEigen()
+    
+    # def toCSR(self) -> sp.sparse.csr_matrix:
+        #  return self.toCSC().toCSR()
+        # return self.wrappedForm.toEigen() //TODO: fix this
 
     def transpose(self, inplace = True): # -> IVCSC:
         return self.wrappedForm.transpose()
