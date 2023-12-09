@@ -75,6 +75,46 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
     mat.def("append", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
     // mat.def("append", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, Eigen::SparseMatrix<T>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
     mat.def("slice", &IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::move);
+    // mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, int8_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, uint8_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, int16_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, uint16_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, int32_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, uint32_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, int64_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
+// mat.def("__imul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, uint64_t a) {
+    // self *= a;
+        // },
+        // py::is_operator(), py::keep_alive<1, 2>()
+// );
     mat.def(py::self *= int8_t());
     mat.def(py::self *= uint8_t());
     mat.def(py::self *= int16_t());
@@ -139,12 +179,57 @@ py::class_<IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>> decl
     mat.def("__mul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor> self, float a) {
         return self * a;
             }, py::is_operator());
-    mat.def("__mul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor> self, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a) {
-        return self * a;
-            }, py::is_operator());
-    mat.def("__mul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor> self, Eigen::Matrix<T, Eigen::Dynamic, 1>& a) {
-        return self * a;
-            }, py::is_operator());
+    mat.def("__mul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor> self, Eigen::Ref<const Eigen::Matrix<T, Eigen::Dynamic, 1>> vec) {
+
+        #ifdef IVSPARSE_DEBUG
+        // check that the vector is the correct size
+        assert(vec.rows() == self.cols() &&
+               "The vector must be the same size as the number of columns in the "
+               "matrix!");
+        #endif
+
+        Eigen::Matrix<T, -1, 1> eigenTemp = Eigen::Matrix<T, -1, 1>::Zero(self.innerSize(), 1);
+
+        // iterate over the vector and multiply the corresponding row of the matrix by the vecIter value
+        for (uint32_t i = 0; i < self.outerSize(); i++) {
+            for (typename IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::InnerIterator matIter(self, i); matIter; ++matIter) {
+                eigenTemp(matIter.row()) += vec(matIter.col()) * matIter.value();
+            }
+        }
+        return eigenTemp;
+            }, py::is_operator(),
+                py::keep_alive<0, 1>(),
+                py::return_value_policy::copy);
+
+
+    mat.def("__mul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor> self, Eigen::Ref<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> mat) {
+        // const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> b = a;
+        #ifdef IVSPARSE_DEBUG
+        // check that the matrix is the correct size
+        if (mat.rows() != self.cols())
+            throw std::invalid_argument(
+                "The left matrix must have the same # of rows as columns in the right "
+                "matrix!");
+        #endif
+
+        Eigen::Matrix<T, -1, -1> newMatrix = Eigen::Matrix<T, -1, -1>::Zero(mat.cols(), self.rows());
+        Eigen::Matrix<T, -1, -1> matTranspose = mat.transpose();
+
+        // Fix Parallelism issue (race condition because of partial sums and
+        // orientation of Sparse * Dense)
+        for (uint32_t col = 0; col < self.outerSize(); col++) {
+            for (typename IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>::InnerIterator matIter(self, col); matIter; ++matIter) {
+                newMatrix.col(matIter.row()) += matTranspose.col(col) * matIter.value();
+            }
+        }
+        return newMatrix.transpose();
+            }, py::is_operator(),
+                py::return_value_policy::copy);
+    // mat.def("__mul__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor> self, Eigen::Ref<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a) {
+    //     return self * a;
+    //         }, py::is_operator(),
+    //             py::keep_alive<0, 1>(),
+    //             py::return_value_policy::move); 
     mat.def("__getitem__", [](IVSparse::SparseMatrix<T, indexT, compressionLevel, isColMajor>& self, std::tuple<indexT, indexT> index) {
         return self(std::get<0>(index), std::get<1>(index));
             }, py::return_value_policy::copy);

@@ -1,4 +1,6 @@
+from __future__ import annotations
 from typing import TypeVar
+from unittest import result
 import PyVSparse
 import scipy as sp
 import numpy as np
@@ -13,16 +15,38 @@ class IVCSC:
         moduleName = "PyVSparse.IVCSC_" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct IVCSC from empty matrix")
-        
+    
+        self.major = major.lower().capitalize()
+        self.dtype: np.dtype = spmat.dtype
+        self.shape = spmat.shape
+        if(spmat.nnz == 0):
+            raise ValueError("Cannot construct VCSC from empty matrix")
         if(spmat.format == "csc"):
             self.major = "Col"
-            self._CSconstruct(moduleName, spmat)    
+            self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
-            self._CSconstruct(moduleName, spmat)        
+            self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
             self._COOconstruct(moduleName, spmat)
-        
+        elif(hasattr(spmat, "wrappedForm")):
+            self = spmat
+        elif(type(spmat) in [string for string in dir(PyVSparse) if "VCSC" in string or "IVCSC" in string]):
+                        # print([string for string in dir(PyVSparse) if "VCSC" in string or "IVCSC" in string])
+            self.wrappedForm = spmat
+
+    def fromPyVSparse(self, ivcsc: IVCSC):
+        self.wrappedForm = ivcsc.wrappedForm
+        self.dtype = ivcsc.dtype
+        self.indexT = ivcsc.indexT
+        self.rows = ivcsc.rows
+        self.cols = ivcsc.cols
+        self.nnz = ivcsc.nnz
+        self.shape = ivcsc.shape
+        self.inner = ivcsc.inner
+        self.outer = ivcsc.outer
+        self.byteSize = ivcsc.byteSize
+
     def __repr__(self) -> None:
         self.wrappedForm.print()
 
@@ -74,6 +98,14 @@ class IVCSC:
     
     def __imul__(self, other):
         self.wrappedForm.__imul__(other)
+        return self
+
+    def __mul__(self, other: np.ndarray) -> np.ndarray:
+        return  self.wrappedForm.__mul__(other)
+
+    def __mul__(self, other: int) -> VCSC:
+        self.wrappedForm = self.wrappedForm.__mul__(other)
+        return self
     
     def __eq__(self, other) -> bool:
         return self.wrappedForm.__eq__(other)
@@ -99,8 +131,13 @@ class IVCSC:
     def append(self, matrix) -> None:
         self.wrappedForm.append(matrix)
 
-    def slice(self, start, end): #-> IVCSC:
-        return self.wrappedForm.slice(start, end)
+    def slice(self, start, end) -> IVCSC:
+        result = self
+        result.wrappedForm = self.wrappedForm.slice(start, end)
+
+        return result
+
+        
     
     #TODO find a better method of doing this
     def _CDTypeConvert(self, dtype: np.dtype) -> str:
