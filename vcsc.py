@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import overload
-import PyVSparse
+import PyVSparse._VCSC
 import scipy as sp
 import numpy as np
 
@@ -12,25 +12,20 @@ class VCSC:
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
 
-
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
         self.indexT: np.dtype = indexT
-
         
         if(spmat.format == "csc"):
             self.major = "Col"
-            # self.indexT = type(spmat.indices[0])
-            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
+            moduleName = "PyVSparse._VCSC._" + str(self.dtype) + "_" + str(self.indexT) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
-            # self.indexT = type(spmat.indices[0])
-            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)
+            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(self.indexT) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
-            # self.indexT = type(spmat.col[0])
-            moduleName = "PyVSparse.VCSC_" + self._CDTypeConvert(self.dtype) + "_" + self._CDTypeConvert(self.indexT) + "_" + str(self.major)    
+            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(self.indexT) + "_" + str(self.major)    
             self._COOconstruct(moduleName, spmat)
         elif(hasattr(spmat, "wrappedForm")):
             self = spmat
@@ -154,32 +149,6 @@ class VCSC:
 
         return result
 
-    #TODO find a better method of doing this
-    def _CDTypeConvert(self, dtype: np.dtype) -> str:
-        match dtype:
-            case np.int8:
-                return "int8_t"
-            case np.int16:
-                return "int16_t"
-            case np.int32:
-                return "int32_t"
-            case np.int64:
-                return "int64_t"
-            case np.uint8:
-                return "uint8_t"
-            case np.uint16:
-                return "uint16_t"
-            case np.uint32:
-                return "uint32_t"
-            case np.uint64:
-                return "uint64_t"
-            case np.float32:
-                return "float"
-            case np.float64:
-                return "double"
-        print("Unknown dtype: ", dtype)
-        return "unknown"
-    
     def _CSconstruct(self, moduleName: str, spmat):
         self.indexT = type(spmat.indices[0])
         self.rows: np.uint32 = spmat.shape[0]

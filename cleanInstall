@@ -2,9 +2,9 @@
 
 rm -rf _deps
 rm -rf CMakeFiles
+rm -rf __pycache__
 rm CMakeCache.txt
 
-cd src
 rm -r build
 rm -r PyVSparse.egg-info
 rm - *.so
@@ -13,5 +13,4 @@ rm cmake_install.cmake
 rm CMakeCache.txt
 rm -rf CMakeFiles
 rm -rf classFiles
-cd ..
 

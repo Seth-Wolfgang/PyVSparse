@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TypeVar
 from unittest import result
-import PyVSparse
+import PyVSparse._IVCSC
 import scipy as sp
 import numpy as np
 
@@ -12,7 +12,7 @@ class IVCSC:
 
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
-        moduleName = "PyVSparse.IVCSC_" + self._CDTypeConvert(self.dtype) + "_uint64_t_" + str(self.major)
+        moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct IVCSC from empty matrix")
     
@@ -136,33 +136,6 @@ class IVCSC:
         result.wrappedForm = self.wrappedForm.slice(start, end)
 
         return result
-
-        
-    
-    #TODO find a better method of doing this
-    def _CDTypeConvert(self, dtype: np.dtype) -> str:
-        match dtype:
-            case np.int8:
-                return "int8_t"
-            case np.int16:
-                return "int16_t"
-            case np.int32:
-                return "int32_t"
-            case np.int64:
-                return "int64_t"
-            case np.uint8:
-                return "uint8_t"
-            case np.uint16:
-                return "uint16_t"
-            case np.uint32:
-                return "uint32_t"
-            case np.uint64:
-                return "uint64_t"
-            case np.float32:
-                return "float"
-            case np.float64:
-                return "double"
-        return "unknown"
 
     def _CSconstruct(self, moduleName: str, spmat):
         self.indexT: np.dtype = type(spmat.indices[0])
