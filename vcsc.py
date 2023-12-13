@@ -14,18 +14,29 @@ class VCSC:
 
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
-        self.indexT: np.dtype = indexT
+        self.indexT = np.dtype(indexT)
+
+        if(isinstance(self.indexT, type(np.dtype(np.uint32)))):
+            self.indexT = np.uint32
+        elif(isinstance(self.indexT, type(np.dtype(np.uint64)))):
+            self.indexT = np.uint64
+        elif(isinstance(self.indexT, type(np.dtype(np.uint16)))):
+            self.indexT = np.uint16
+        elif(isinstance(self.indexT, type(np.dtype(np.uint8)))):
+            self.indexT = np.uint8
+        else:
+            raise TypeError("indexT must be one of: np.uint8, np.uint16, np.uint32, np.uint64")
         
         if(spmat.format == "csc"):
             self.major = "Col"
-            moduleName = "PyVSparse._VCSC._" + str(self.dtype) + "_" + str(self.indexT) + "_" + str(self.major)
+            moduleName = "PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
-            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(self.indexT) + "_" + str(self.major)
+            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(self.indexT) + "_" + str(self.major)    
+            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)    
             self._COOconstruct(moduleName, spmat)
         elif(hasattr(spmat, "wrappedForm")):
             self = spmat
@@ -37,7 +48,6 @@ class VCSC:
         self.rows = vcsc.rows
         self.cols = vcsc.cols
         self.nnz = vcsc.nnz
-        self.shape = vcsc.shape
         self.inner = vcsc.inner
         self.outer = vcsc.outer
         self.byteSize = vcsc.byteSize
@@ -100,28 +110,44 @@ class VCSC:
         if inplace:
             self.wrappedForm = self.wrappedForm.transpose()
             self.rows, self.cols = self.cols, self.rows
-            self.shape = (self.rows, self.cols)
             self.inner, self.outer = self.outer, self.inner
-            return
+            return self
         temp = self
         temp.wrappedForm = self.wrappedForm.transpose()
         temp.rows, temp.cols = self.cols, self.rows
-        temp.shape = (self.rows, self.cols)
         temp.inner, temp.outer = self.outer, self.inner
         return temp
         
     
-    def __imul__(self, other):
-        self.wrappedForm.__imul__(other)
+
+    def shape(self) -> tuple[np.uint32, np.uint32]:
+        return (self.rows, self.cols)
+    
+    def __imul__(self, other: np.ndarray) -> VCSC:
+
+        if(type(other) == np.ndarray):
+            self.wrappedForm.__imul__(other)
+            self.cols = self.wrappedForm.cols
+            self.rows = self.wrappedForm.rows
+        elif(type(other) == int):
+            self.wrappedForm.__imul__(other)
+        else:
+            raise TypeError("Cannot multiply VCSC by " + str(type(other)))
+            
         return self
+    
+    def __mul__(self, other: np.ndarray):
 
-    def __mul__(self, other: np.ndarray) -> np.ndarray:
-        return  self.wrappedForm.__mul__(other)
-
-    def __mul__(self, other: int) -> VCSC:
-        self.wrappedForm = self.wrappedForm.__mul__(other)
-        return self
-
+        if(isinstance(other, np.ndarray)):
+            temp: np.ndarray = self.wrappedForm.__mul__(other)
+            return temp
+        elif(isinstance(other, int)):
+            result = self
+            result.wrappedForm = self.wrappedForm.__mul__(other)
+            return result
+        else:
+            raise TypeError("Cannot multiply VCSC by " + str(type(other)))
+            
     def __eq__(self, other) -> bool:
         return self.wrappedForm.__eq__(other)
     
@@ -154,7 +180,6 @@ class VCSC:
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
-        self.shape = spmat.shape
         self.inner: np.uint32 = spmat.indices
         self.outer: np.uint32 = spmat.indptr
         # print("Constructing VCSC with moduleName: ", moduleName)
@@ -165,7 +190,6 @@ class VCSC:
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
-        self.shape = spmat.shape
         
         if(self.major == "Col"):
             self.inner: np.uint32 = spmat.row

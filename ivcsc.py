@@ -18,7 +18,6 @@ class IVCSC:
     
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
-        self.shape = spmat.shape
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
         if(spmat.format == "csc"):
@@ -42,7 +41,6 @@ class IVCSC:
         self.rows = ivcsc.rows
         self.cols = ivcsc.cols
         self.nnz = ivcsc.nnz
-        self.shape = ivcsc.shape
         self.inner = ivcsc.inner
         self.outer = ivcsc.outer
         self.byteSize = ivcsc.byteSize
@@ -96,17 +94,31 @@ class IVCSC:
     def shape(self) -> tuple[np.uint32, np.uint32]:
         return (self.rows, self.cols)
     
-    def __imul__(self, other):
-        self.wrappedForm.__imul__(other)
-        return self
+    def __imul__(self, other: np.ndarray) -> IVCSC:
 
-    def __mul__(self, other: np.ndarray) -> np.ndarray:
-        return  self.wrappedForm.__mul__(other)
-
-    def __mul__(self, other: int) -> VCSC:
-        self.wrappedForm = self.wrappedForm.__mul__(other)
+        if(isinstance(other, np.ndarray)):
+            self.wrappedForm = self.wrappedForm.__imul__(other)
+            self.cols = self.wrappedForm.cols
+            self.rows = self.wrappedForm.rows
+        elif(isinstance(other, int)):
+            self.wrappedForm.__imul__(other)
+        else:
+            raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
+            
         return self
     
+    def __mul__(self, other: np.ndarray):
+
+        if(isinstance(other, np.ndarray)):
+            temp = self.wrappedForm.__mul__(other)
+            return temp
+        elif(isinstance(other, int)):
+            result = self
+            result.wrappedForm = self.wrappedForm.__mul__(other)
+            return result
+        else:
+            raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
+            
     def __eq__(self, other) -> bool:
         return self.wrappedForm.__eq__(other)
     
@@ -142,7 +154,6 @@ class IVCSC:
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
-        self.shape = spmat.shape
 
 
         if(self.major == "Col"):
@@ -159,7 +170,6 @@ class IVCSC:
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
-        self.shape = spmat.shape
         
         if(self.major == "Col"):
             self.inner: np.uint32 = spmat.row

@@ -9,7 +9,8 @@ import numpy as np
 import PyVSparse
 # print(dir(VCSC))
 # print(dir(IVCSC))
-print(dir(PyVSparse.IVCSC._uint32_Col))
+# print(dir(PyVSparse.IVCSC._uint32_Col))
+print(str(np.dtype(np.uint32)))
 
 
 # control: sp.sparse.csc_matrix = sp.sparse.random(5, 1, format='csc', dtype = np.int32, density=1)
