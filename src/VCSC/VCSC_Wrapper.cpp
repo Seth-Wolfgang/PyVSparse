@@ -62,7 +62,7 @@ py::class_<IVSparse::VCSC<T, indexT, isColMajor>> declareVCSC(py::module& m) {
 
 template <typename T, typename indexT, bool isColMajor>
 void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, isColMajor>>& mat) {
-    
+
     mat.def(py::self *= int8_t());
     mat.def(py::self *= uint8_t());
     mat.def(py::self *= int16_t());
@@ -127,7 +127,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
     mat.def("__mul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, float a) {
         return self * a;
             }, py::is_operator());
-    mat.def("__mul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, Eigen::Ref<const Eigen::Matrix<T, Eigen::Dynamic, 1>> vec) {
+    mat.def("__mul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, 1>> vec) {
 
         #ifdef IVSPARSE_DEBUG
         // check that the vector is the correct size
@@ -136,7 +136,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
                "matrix!");
         #endif
 
-        Eigen::Matrix<T, -1, 1> eigenTemp = Eigen::Matrix<T, -1, 1>::Zero(self.innerSize(), 1);
+        Eigen::Matrix<T, -1, -1> eigenTemp = Eigen::Matrix<T, -1, -1>::Zero(self.rows(), 1);
 
         // iterate over the vector and multiply the corresponding row of the matrix by the vecIter value
         for (uint32_t i = 0; i < self.outerSize(); i++) {
@@ -146,12 +146,11 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         }
         return eigenTemp;
             }, py::is_operator(),
-                py::keep_alive<0, 1>(),
+                py::keep_alive<1, 2>(),
                 py::return_value_policy::copy);
 
 
-    mat.def("__mul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, Eigen::Ref<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> mat) {
-        // const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> b = a;
+    mat.def("__mul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
         #ifdef IVSPARSE_DEBUG
         // check that the matrix is the correct size
         if (mat.rows() != self.cols())
@@ -162,25 +161,33 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
 
         Eigen::Matrix<T, -1, -1> newMatrix = Eigen::Matrix<T, -1, -1>::Zero(mat.cols(), self.rows());
         Eigen::Matrix<T, -1, -1> matTranspose = mat.transpose();
-
         // Fix Parallelism issue (race condition because of partial sums and
         // orientation of Sparse * Dense)
+
         for (uint32_t col = 0; col < self.outerSize(); col++) {
             for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator matIter(self, col); matIter; ++matIter) {
-                newMatrix.col(matIter.row()) += matTranspose.col(col) * matIter.value();
+                if constexpr (isColMajor) {
+                    newMatrix.col(matIter.getIndex()) += matTranspose.col(col) * matIter.value();
+                }
+                else {
+                    newMatrix.col(col) += matTranspose.col(matIter.getIndex()) * matIter.value();
+                }
             }
         }
-        return newMatrix.transpose();
+        newMatrix.transposeInPlace();
+        return newMatrix;
             }, py::is_operator(),
+                py::keep_alive<1, 2>(),
                 py::return_value_policy::copy);
-    // mat.def("__mul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, Eigen::Ref<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a) {
+    // mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, Eigen::Ref<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a) {
     //     return self * a;
     //         }, py::is_operator(),
-    //             py::keep_alive<0, 1>(),
+    //             py::keep_alive<1, 2>(),
     //             py::return_value_policy::move); 
-    mat.def("__getitem__", [](IVSparse::VCSC<T, indexT, isColMajor>& self, std::tuple<indexT, indexT> index) {
+    mat.def("__getitem__", [](IVSparse::VCSC<T, indexT, isColMajor>& self, std::tuple<size_t, size_t> index) {
         return self(std::get<0>(index), std::get<1>(index));
             }, py::return_value_policy::copy);
+
 }
 
 template <typename T, typename indexT, bool isColMajor>

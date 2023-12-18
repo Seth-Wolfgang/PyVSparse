@@ -33,7 +33,7 @@ class VCSC:
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
-            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
+            moduleName = "PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
             moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)    
@@ -99,12 +99,16 @@ class VCSC:
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toCSC(self) -> sp.sparse.csc_matrix:
+    def tocsc(self) -> sp.sparse.csc_matrix:
+        if self.major == "Row":
+            return self.wrappedForm.toEigen().tocsc()
         return self.wrappedForm.toEigen()
     
-    # def toCSR(self) -> sp.sparse.csr_matrix:
-    #     return self.toCSC().toCSR()
-        # return self.wrappedForm.toEigen()
+    def tocsr(self) -> sp.sparse.csr_matrix:
+        if self.major == "Col":
+            return self.tocsc().tocsr()
+        else:
+            return self.wrappedForm.toEigen()
 
     def transpose(self, inplace = True) -> VCSC:
         if inplace:
@@ -125,25 +129,21 @@ class VCSC:
     
     def __imul__(self, other: np.ndarray) -> VCSC:
 
-        if(type(other) == np.ndarray):
-            self.wrappedForm.__imul__(other)
-            self.cols = self.wrappedForm.cols
-            self.rows = self.wrappedForm.rows
-        elif(type(other) == int):
+        if(type(other) == int or type(other) == float):
             self.wrappedForm.__imul__(other)
         else:
             raise TypeError("Cannot multiply VCSC by " + str(type(other)))
             
         return self
     
-    def __mul__(self, other: np.ndarray):
+    def __mul__(self, other):
 
         if(isinstance(other, np.ndarray)):
-            temp: np.ndarray = self.wrappedForm.__mul__(other)
+            temp: np.ndarray = self.wrappedForm * other
             return temp
-        elif(isinstance(other, int)):
+        elif(isinstance(other, int) or isinstance(other, float)):
             result = self
-            result.wrappedForm = self.wrappedForm.__mul__(other)
+            result.wrappedForm = self.wrappedForm * other
             return result
         else:
             raise TypeError("Cannot multiply VCSC by " + str(type(other)))
@@ -172,6 +172,17 @@ class VCSC:
     def slice(self, start, end) -> VCSC: 
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
+        
+        if(self.major == "Col"):
+            result.inner = self.rows
+            result.outer = end - start
+            result.cols = result.outer
+            result.rows = self.rows
+        else:
+            result.inner = self.cols
+            result.outer = end - start
+            result.rows = result.outer
+            result.cols = self.cols
 
         return result
 

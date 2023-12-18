@@ -12,7 +12,6 @@ class IVCSC:
 
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
-        moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct IVCSC from empty matrix")
     
@@ -22,11 +21,14 @@ class IVCSC:
             raise ValueError("Cannot construct VCSC from empty matrix")
         if(spmat.format == "csc"):
             self.major = "Col"
+            moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
+            moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
+            moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
             self._COOconstruct(moduleName, spmat)
         elif(hasattr(spmat, "wrappedForm")):
             self = spmat
@@ -81,12 +83,16 @@ class IVCSC:
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
 
-    def toCSC(self) -> sp.sparse.csc_matrix:
+    def tocsc(self) -> sp.sparse.csc_matrix:
+        if self.major == "Row":
+            return self.wrappedForm.toEigen().tocsc()
         return self.wrappedForm.toEigen()
     
-    # def toCSR(self) -> sp.sparse.csr_matrix:
-        #  return self.toCSC().toCSR()
-        # return self.wrappedForm.toEigen() //TODO: fix this
+    def tocsr(self) -> sp.sparse.csr_matrix:
+        if self.major == "Col":
+            return self.tocsc().tocsr()
+        else:
+            return self.wrappedForm.toEigen()
 
     def transpose(self, inplace = True): # -> IVCSC:
         return self.wrappedForm.transpose()
@@ -96,11 +102,7 @@ class IVCSC:
     
     def __imul__(self, other: np.ndarray) -> IVCSC:
 
-        if(isinstance(other, np.ndarray)):
-            self.wrappedForm = self.wrappedForm.__imul__(other)
-            self.cols = self.wrappedForm.cols
-            self.rows = self.wrappedForm.rows
-        elif(isinstance(other, int)):
+        if(isinstance(other, int) or isinstance(other, float)):
             self.wrappedForm.__imul__(other)
         else:
             raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
@@ -112,7 +114,7 @@ class IVCSC:
         if(isinstance(other, np.ndarray)):
             temp = self.wrappedForm.__mul__(other)
             return temp
-        elif(isinstance(other, int)):
+        elif(isinstance(other, int) or isinstance(other, float)):
             result = self
             result.wrappedForm = self.wrappedForm.__mul__(other)
             return result
@@ -146,6 +148,17 @@ class IVCSC:
     def slice(self, start, end) -> IVCSC:
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
+        
+        if(self.major == "Col"):
+            result.inner = self.rows
+            result.outer = end - start
+            result.cols = result.outer
+            result.rows = self.rows
+        else:
+            result.inner = self.cols
+            result.outer = end - start
+            result.rows = result.outer
+            result.cols = self.cols
 
         return result
 

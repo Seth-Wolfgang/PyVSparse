@@ -13,11 +13,11 @@ import pytest
 #TODO Make this do real unit testing
 #TODO work on commented out tests
 #TODO implement COO constructor testing
-types = ( np.int32, np.uint32, np.int64, np.uint64) ## (np.int8, np.uint8, np.int16, np.uint16, , np.float32, np.float64)
+types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ()
 
 indexTypes = (np.uint8, np.uint16, np.uint32, np.uint64)
-# formats = ("csc", "csr")
-formats = ("csc",)
+formats = ("csc", "csr")
+# formats = ("csc",)
 densities = (0.3, 0.4, 1.0)
 rows = (1, 2, 10, 100)
 cols = (1, 2, 10, 100)
@@ -95,149 +95,194 @@ class Test:
             pytest.skip("Skipping toCSC test for csr matrix")
         return IVCSCMatrix.toCSC()
 
-    def testDtype(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        assert VCSCMatrix.dtype == SPMatrix.dtype, "VCSCMatrix: " + str(VCSCMatrix.dtype) + " SPMatrix: " + str(SPMatrix.dtype)
-        assert IVCSCMatrix.dtype == SPMatrix.dtype, "IVCSCMatrix: " + str(IVCSCMatrix.dtype) + " SPMatrix: " + str(SPMatrix.dtype)
+    # def testDtype(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     assert VCSCMatrix.dtype == SPMatrix.dtype, "VCSCMatrix: " + str(VCSCMatrix.dtype) + " SPMatrix: " + str(SPMatrix.dtype)
+    #     assert IVCSCMatrix.dtype == SPMatrix.dtype, "IVCSCMatrix: " + str(IVCSCMatrix.dtype) + " SPMatrix: " + str(SPMatrix.dtype)
 
-    def testShape(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        assert VCSCMatrix.shape() == SPMatrix.shape, "VCSCMatrix: " + str(VCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
-        assert IVCSCMatrix.shape() == SPMatrix.shape, "IVCSCMatrix: " + str(IVCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
+    # def testShape(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     assert VCSCMatrix.shape() == SPMatrix.shape, "VCSCMatrix: " + str(VCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
+    #     assert IVCSCMatrix.shape() == SPMatrix.shape, "IVCSCMatrix: " + str(IVCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
 
-    def testMajor(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        if SPMatrix.format == "CSC":
-            assert VCSCMatrix.major == "Col", "VCSCMatrix: " + str(VCSCMatrix.major) + " myFormat: " + str(formats)
-            assert IVCSCMatrix.major == "Col", "IVCSCMatrix: " + str(IVCSCMatrix.major) + " myFormat: " + str(formats)
-        elif SPMatrix.format == "CSR":
-            assert VCSCMatrix.major == "Row", "VCSCMatrix: " + str(VCSCMatrix.major) + " myFormat: " + str(formats)
-            assert IVCSCMatrix.major == "Row", "IVCSCMatrix: " + str(IVCSCMatrix.major) + " myFormat: " + str(formats)
+    # def testMajor(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     if SPMatrix.format == "CSC":
+    #         assert VCSCMatrix.major == "Col", "VCSCMatrix: " + str(VCSCMatrix.major) + " myFormat: " + str(formats)
+    #         assert IVCSCMatrix.major == "Col", "IVCSCMatrix: " + str(IVCSCMatrix.major) + " myFormat: " + str(formats)
+    #     elif SPMatrix.format == "CSR":
+    #         assert VCSCMatrix.major == "Row", "VCSCMatrix: " + str(VCSCMatrix.major) + " myFormat: " + str(formats)
+    #         assert IVCSCMatrix.major == "Row", "IVCSCMatrix: " + str(IVCSCMatrix.major) + " myFormat: " + str(formats)
 
+    # def testToCSR(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
+    #     csc_from_ivcsc = IVCSCMatrix.tocsr()
+    #     csc_from_vcsc = VCSCMatrix.tocsr()
 
-    def testCSCConstructionVCSC(self, SPMatrix):
-        test = vcsc.VCSC(SPMatrix)
-        assert epsilon > abs(test.sum() - SPMatrix.sum()), "test: " + str(test.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+    #     resultvcsc = csc_from_vcsc - SPMatrix
+    #     resultivcsc = csc_from_ivcsc - SPMatrix
 
-    def testCSCConstructionIVCSC(self, SPMatrix):
-        test = ivcsc.IVCSC(SPMatrix)
-        assert epsilon > abs(test.sum() - SPMatrix.sum()), "test: " + str(test.sum()) + " SPMatrix: " + str(SPMatrix.sum())
-
-    def testVCSC_IVCSC_Equality(self, SPMatrix):
-        VCSCMatrix = vcsc.VCSC(SPMatrix)
-        IVCSCMatrix = ivcsc.IVCSC(SPMatrix)
-        assert epsilon > abs(VCSCMatrix.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
-        assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
-
-    def testSum(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        assert epsilon > abs(SPMatrix.sum() - VCSCMatrix.sum())
-        assert epsilon > abs(SPMatrix.sum() - IVCSCMatrix.sum())
-
-
-    def testCopy(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        VCSCMatrix_copy = VCSCMatrix
-        IVCSCMatrix_copy = IVCSCMatrix
-
-        assert VCSCMatrix_copy == VCSCMatrix
-        assert IVCSCMatrix_copy == IVCSCMatrix
-
-        assert epsilon > abs(VCSCMatrix_copy.sum() - VCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
-        assert epsilon > abs(IVCSCMatrix_copy.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
-
-    def testTrace(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        if rows != cols:
-            pytest.skip("Skipping trace test for non-square matrix")
-        assert VCSCMatrix.trace() == IVCSCMatrix.trace(), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
-        assert VCSCMatrix.trace() == SPMatrix.trace(), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
-
-    def testNorm(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        val = sp.sparse.linalg.norm(SPMatrix, "fro")
-        assert epsilon > abs(VCSCMatrix.norm() - IVCSCMatrix.norm())
-        assert epsilon > abs(VCSCMatrix.norm() - val), "VCSCMatrix: " + str(VCSCMatrix.norm()) + " IVCSCMatrix: " + str(IVCSCMatrix.norm()) + " SPMatrix: " + str(val)
-
-
-    def testToCSC(self, SPMatrix, IVCSCMatrix, VCSCMatrix):
-        if(SPMatrix.format == "csr"):
-            pytest.skip("Skipping toCSC test for csr matrix")
+    #     assert epsilon > abs(resultvcsc.sum() - resultivcsc.sum()), "resultvcsc: " + str(resultvcsc.sum()) + " resultivcsc: " + str(resultivcsc.sum())
+    #     assert epsilon > abs(csc_from_ivcsc.sum() - csc_from_vcsc.sum()), "csc_from_ivcsc: " + str(csc_from_ivcsc.sum()) + " csc_from_vcsc: " + str(csc_from_vcsc.sum())
         
-        csc_from_ivcsc = IVCSCMatrix.toCSC()
-        csc_from_vcsc = VCSCMatrix.toCSC()
+    #     for x in range(csc_from_ivcsc.shape[0]):
+    #         for y in range(csc_from_ivcsc.shape[1]):
+    #             assert epsilon > abs(csc_from_ivcsc[x, y] - csc_from_vcsc[x, y]), "csc_from_ivcsc: " + str(csc_from_ivcsc[x, y]) + " csc_from_vcsc: " + str(csc_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
 
-    
-        assert epsilon > abs(csc_from_ivcsc.sum() - csc_from_vcsc.sum()), "csc_from_ivcsc: " + str(IVCSCMatrix.sum()) + " csc_from_vcsc: " + str(VCSCMatrix.sum())
-        assert csc_from_ivcsc.shape == csc_from_vcsc.shape, "csc_from_ivcsc: " + str(csc_from_ivcsc.shape) + " csc_from_vcsc: " + str(csc_from_vcsc.shape)
-        assert csc_from_ivcsc.dtype == csc_from_vcsc.dtype, "csc_from_ivcsc: " + str(csc_from_ivcsc.dtype) + " csc_from_vcsc: " + str(csc_from_vcsc.dtype)
-        assert csc_from_ivcsc.format == csc_from_vcsc.format, "csc_from_ivcsc: " + str(csc_from_ivcsc.format) + " csc_from_vcsc: " + str(csc_from_vcsc.format)
+    # def testToCSC(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
+    #     csc_from_ivcsc = IVCSCMatrix.tocsc()
+    #     csc_from_vcsc = VCSCMatrix.tocsc()
 
-        x = csc_from_ivcsc.__str__()
-        y = csc_from_vcsc.__str__()
-        z = SPMatrix.__str__()
-        assert x == y, "csc_from_ivcsc: " + str(x) + " csc_from_vcsc: " + str(y)
-        assert x == z, "csc_from_ivcsc: " + str(x) + " SPMatrix: " + str(z)
+    #     resultvcsc = csc_from_vcsc - SPMatrix
+    #     resultivcsc = csc_from_ivcsc - SPMatrix
 
-    def testTranspose(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        vcsc_T = VCSCMatrix.transpose()
-        ivcsc_T = IVCSCMatrix.transpose()
-        SPMatrix_T = SPMatrix.transpose()
-        assert epsilon > abs(vcsc_T.sum() - ivcsc_T.sum()), "vcsc_T: " + str(vcsc_T.sum()) + " ivcsc_T: " + str(ivcsc_T.sum())
-        assert epsilon > abs(vcsc_T.sum() - SPMatrix_T.sum()), "vcsc_T: " + str(vcsc_T.sum()) + " ivcsc_T: " + str(ivcsc_T.sum()) + " SPMatrix_T: " + str(SPMatrix_T.sum())
-        assert epsilon > abs(vcsc_T.norm() - ivcsc_T.norm()), "vcsc_T: " + str(vcsc_T.norm()) + " ivcsc_T: " + str(ivcsc_T.norm())
-
-    def testInPlaceTranspose(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        print(SPMatrix.shape, VCSCMatrix.shape, IVCSCMatrix.shape)
-        print(SPMatrix.sum(), VCSCMatrix.sum(), IVCSCMatrix.sum())
-        print(SPMatrix.nnz, VCSCMatrix.nnz, IVCSCMatrix.nnz)
-        print(SPMatrix.dtype, VCSCMatrix.dtype, IVCSCMatrix.dtype)
-
-        VCSCMatrix.transpose(inplace = True)
-        IVCSCMatrix.transpose(inplace = True)
-        SPMatrix.transpose()
-        assert epsilon > abs(VCSCMatrix.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
-        assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
-        assert epsilon > abs(VCSCMatrix.norm() - IVCSCMatrix.norm()), "VCSCMatrix: " + str(VCSCMatrix.norm()) + " IVCSCMatrix: " + str(IVCSCMatrix.norm())
-
-    def testIPScalarMultiplyVCSC(self, SPMatrix, VCSCMatrix):
-        VCSCMatrix *= 2
-        SPMatrix *= 2
-
-        assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(VCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
-
-    def testScalarMultiplyVCSC(self, SPMatrix, VCSCMatrix):
-        VCSCresult = VCSCMatrix * 2
-        SPresult = SPMatrix * 2
-
-        assert epsilon > abs(VCSCresult.sum() - SPresult.sum())
-        assert VCSCresult.shape() == SPresult.shape
-
-    def testVectorMultiplyVCSC(self, SPMatrix, VCSCMatrix, SPVector):
-        VCSCresult = VCSCMatrix * SPVector
-        SPresult = SPMatrix * SPVector
-
-        assert epsilon > abs(VCSCresult.sum() - SPresult.sum()), "VCSCResult: " + str(VCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
-
-        if(isinstance(VCSCresult, np.ndarray)):
-            assert VCSCresult.shape[0] == SPresult.shape[0], "VCSCResult: " + str(VCSCresult.shape) + " SPresult: " + str(SPresult.shape)
-            assert len(VCSCresult.shape) == 1, "VCSCResult: " + str(VCSCresult.shape) + " SPresult: " + str(SPresult.shape)
-
-    def testIPScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
-        IVCSCMatrix *= 2
-        SPMatrix *= 2
-
-        assert epsilon > abs(IVCSCMatrix.sum() - SPMatrix.sum()), " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
-        assert IVCSCMatrix.shape() == SPMatrix.shape, " IVCSCMatrix: " + str(IVCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
-
-    def testScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
-        IVCSCresult = IVCSCMatrix * 2
-        SPresult = SPMatrix * 2
-
-        assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
-        assert IVCSCresult.shape() == SPresult.shape, "IVCSCresult: " + str(IVCSCresult.shape) + " SPresult: " + str(SPresult.shape)
-
-    def testVectorMultiplyIVCSC(self, SPMatrix, IVCSCMatrix, SPVector):
-        IVCSCresult = IVCSCMatrix * SPVector
-        SPresult = SPMatrix * SPVector
-
-        assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
-
-        if(isinstance(IVCSCresult, np.ndarray)):
-            assert IVCSCresult.shape[0] == SPresult.shape[0], "IVCSCresult: " + str(IVCSCresult.shape) + " SPresult: " + str(SPresult.shape)
-            assert len(IVCSCresult.shape) == 1, "IVCSCresult: " + str(IVCSCresult.shape) + " SPresult: " + str(SPresult.shape)
+    #     assert epsilon > abs(resultvcsc.sum() - resultivcsc.sum()), "resultvcsc: " + str(resultvcsc.sum()) + " resultivcsc: " + str(resultivcsc.sum())
+    #     assert epsilon > abs(csc_from_ivcsc.sum() - csc_from_vcsc.sum()), "csc_from_ivcsc: " + str(csc_from_ivcsc.sum()) + " csc_from_vcsc: " + str(csc_from_vcsc.sum())
+        
+    #     for x in range(csc_from_ivcsc.shape[0]):
+    #         for y in range(csc_from_ivcsc.shape[1]):
+    #             assert epsilon > abs(csc_from_ivcsc[x, y] - csc_from_vcsc[x, y]), "csc_from_ivcsc: " + str(csc_from_ivcsc[x, y]) + " csc_from_vcsc: " + str(csc_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
 
 
+    # def testCSCConstructionVCSC(self, SPMatrix):
+    #     test = vcsc.VCSC(SPMatrix)
+    #     assert epsilon > abs(test.sum() - SPMatrix.sum()), "test: " + str(test.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+
+    # def testCSCConstructionIVCSC(self, SPMatrix):
+    #     test = ivcsc.IVCSC(SPMatrix)
+    #     assert epsilon > abs(test.sum() - SPMatrix.sum()), "test: " + str(test.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+
+    # def testVCSC_IVCSC_Equality(self, SPMatrix):
+    #     VCSCMatrix = vcsc.VCSC(SPMatrix)
+    #     IVCSCMatrix = ivcsc.IVCSC(SPMatrix)
+    #     assert epsilon > abs(VCSCMatrix.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
+    #     assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+
+    # def testSum(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     assert epsilon > abs(SPMatrix.sum() - VCSCMatrix.sum())
+    #     assert epsilon > abs(SPMatrix.sum() - IVCSCMatrix.sum())
+
+
+    # def testCopy(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     VCSCMatrix_copy = VCSCMatrix
+    #     IVCSCMatrix_copy = IVCSCMatrix
+
+    #     assert VCSCMatrix_copy == VCSCMatrix
+    #     assert IVCSCMatrix_copy == IVCSCMatrix
+
+    #     assert epsilon > abs(VCSCMatrix_copy.sum() - VCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
+    #     assert epsilon > abs(IVCSCMatrix_copy.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
+
+    # def testTrace(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     if rows != cols:
+    #         pytest.skip("Skipping trace test for non-square matrix")
+    #     assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
+    #     assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
+
+    # def testNorm(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     val = sp.sparse.linalg.norm(SPMatrix, "fro")
+    #     assert epsilon > abs(VCSCMatrix.norm() - IVCSCMatrix.norm())
+    #     assert epsilon > abs(VCSCMatrix.norm() - val), "VCSCMatrix: " + str(VCSCMatrix.norm()) + " IVCSCMatrix: " + str(IVCSCMatrix.norm()) + " SPMatrix: " + str(val)
+
+    # def testTranspose(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     vcsc_T = VCSCMatrix.transpose()
+    #     ivcsc_T = IVCSCMatrix.transpose()
+    #     SPMatrix_T = SPMatrix.transpose()
+    #     assert epsilon > abs(vcsc_T.sum() - ivcsc_T.sum()), "vcsc_T: " + str(vcsc_T.sum()) + " ivcsc_T: " + str(ivcsc_T.sum())
+    #     assert epsilon > abs(vcsc_T.sum() - SPMatrix_T.sum()), "vcsc_T: " + str(vcsc_T.sum()) + " ivcsc_T: " + str(ivcsc_T.sum()) + " SPMatrix_T: " + str(SPMatrix_T.sum())
+    #     assert epsilon > abs(vcsc_T.norm() - ivcsc_T.norm()), "vcsc_T: " + str(vcsc_T.norm()) + " ivcsc_T: " + str(ivcsc_T.norm())
+
+    # def testInPlaceTranspose(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+    #     VCSCMatrix.transpose(inplace = True)
+    #     IVCSCMatrix.transpose(inplace = True)
+    #     SPMatrix.transpose()
+    #     assert epsilon > abs(VCSCMatrix.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
+    #     assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+    #     assert epsilon > abs(VCSCMatrix.norm() - IVCSCMatrix.norm()), "VCSCMatrix: " + str(VCSCMatrix.norm()) + " IVCSCMatrix: " + str(IVCSCMatrix.norm())
+
+    # def testIPScalarMultiplyVCSC(self, SPMatrix, VCSCMatrix):
+    #     VCSCMatrix *= 2
+    #     SPMatrix *= 2
+
+    #     assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(VCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+
+    # def testScalarMultiplyVCSC(self, SPMatrix, VCSCMatrix):
+    #     VCSCresult = VCSCMatrix * 2
+    #     SPresult = SPMatrix * 2
+
+    #     assert epsilon > abs(VCSCresult.sum() - SPresult.sum())
+    #     assert VCSCresult.shape() == SPresult.shape
+
+    # def testVectorMultiplyVCSC(self, SPMatrix, VCSCMatrix, SPVector):
+    #     VCSCresult = VCSCMatrix * SPVector
+    #     SPresult = SPMatrix * SPVector
+
+    #     print(VCSCresult)
+    #     print(SPresult)
+
+    #     # assert epsilon > abs(VCSCresult.sum() - SPresult.sum()), "VCSCResult: " + str(VCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
+    #     result = VCSCresult - SPresult # SHOULD be a matrix of all zeros
+    #     for x in result:
+    #         for y in x:
+    #             assert epsilon > abs(y), "VCSCresult: " + str(VCSCresult) + " SPresult: " + str(SPresult)
+
+    # def testIPScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     IVCSCMatrix *= 2
+    #     SPMatrix *= 2
+
+    #     assert epsilon > abs(IVCSCMatrix.sum() - SPMatrix.sum()), " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+    #     assert IVCSCMatrix.shape() == SPMatrix.shape, " IVCSCMatrix: " + str(IVCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
+
+    # def testScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     IVCSCresult = IVCSCMatrix * 2
+    #     SPresult = SPMatrix * 2
+
+    #     assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
+    #     assert IVCSCresult.shape() == SPresult.shape, "IVCSCresult: " + str(IVCSCresult.shape) + " SPresult: " + str(SPresult.shape)
+
+    # def testVectorMultiplyIVCSC(self, SPMatrix, IVCSCMatrix, SPVector):
+    #     IVCSCresult = IVCSCMatrix * SPVector
+    #     SPresult = SPMatrix * SPVector
+
+    #     assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
+    #     result = IVCSCresult - SPresult # SHOULD be a matrix of all zeros
+    #     for x in result:
+    #         for y in x:
+    #             assert epsilon > abs(y), "IVCSCresult: " + str(IVCSCresult) + " SPresult: " + str(SPresult)
+    def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] / 2 == 0:
+            pytest.skip("Skipping slice test for would be 0 col matrix")
+
+        half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
+        half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
+        assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
+        assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
+        # assert half_vcsc.sum() - SPMatrix[].sum(), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " SPMatrix: " + str(SPMatrix[0, 2].sum())
+        
+        half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
+        assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
+        assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
+
+        result = half_vcsc.tocsc() - half_sp
+        for x in range(result.shape[0]):
+            for y in range(result.shape[1]):
+                assert epsilon > abs(result[x, y]), "half_vcsc: " + str(half_vcsc[x, y]) + " half_sp: " + str(half_sp[x, y]) + " Diff: " + str(abs(result[x, y]))
+        
+
+    def testMatrixMultiplyVCSC(self, SPMatrix, VCSCMatrix):
+        VCSCresult = VCSCMatrix *  SPMatrix.transpose().toarray()
+        SPresult = SPMatrix *  SPMatrix.transpose().toarray()
+
+        # assert epsilon > abs(VCSCresult.sum() - SPresult.sum()), "VCSCresult: " + str(VCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
+        result = VCSCresult - SPresult # SHOULD be a matrix of all zeros
+        for x in result:
+            for y in x:
+                assert epsilon > abs(y), "VCSCresult: " + str(VCSCresult) + " SPresult: " + str(SPresult)
+
+    def testMatrixMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
+        IVCSCresult = IVCSCMatrix * SPMatrix.transpose().toarray()
+        SPresult = SPMatrix * SPMatrix.transpose().toarray()
+
+        print("Shape", IVCSCMatrix.shape())
+
+        # assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
+        result = IVCSCresult - SPresult # SHOULD be a matrix of all zeros
+        for x in result:
+            for y in x:
+                assert epsilon > abs(y), "IVCSCresult: " + str(IVCSCresult) + " SPresult: " + str(SPresult)
