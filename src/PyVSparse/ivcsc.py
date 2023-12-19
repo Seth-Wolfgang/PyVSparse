@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TypeVar
 from unittest import result
-import PyVSparse._IVCSC
+
 import scipy as sp
 import numpy as np
-
+import PyVSparse
 # scipyFormats = TypeVar("scipyFormats", sp.sparse.csr_matrix, sp.sparse.csc_matrix, sp.sparse.coo_matrix)
 
 class IVCSC:
@@ -21,20 +21,20 @@ class IVCSC:
             raise ValueError("Cannot construct VCSC from empty matrix")
         if(spmat.format == "csc"):
             self.major = "Col"
-            moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
+            moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
-            moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
+            moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
+            moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.major)
             self._COOconstruct(moduleName, spmat)
         elif(hasattr(spmat, "wrappedForm")):
             self = spmat
-        elif(type(spmat) in [string for string in dir(PyVSparse) if "VCSC" in string or "IVCSC" in string]):
+        # elif(type(spmat) in [string for string in dir(PyVSparse) if "VCSC" in string or "IVCSC" in string]):
                         # print([string for string in dir(PyVSparse) if "VCSC" in string or "IVCSC" in string])
-            self.wrappedForm = spmat
+            # self.wrappedForm = spmat
 
     def fromPyVSparse(self, ivcsc: IVCSC):
         self.wrappedForm = ivcsc.wrappedForm
@@ -45,7 +45,7 @@ class IVCSC:
         self.nnz = ivcsc.nnz
         self.inner = ivcsc.inner
         self.outer = ivcsc.outer
-        self.byteSize = ivcsc.byteSize
+        self.bytes = ivcsc.bytes
 
     def __repr__(self) -> None:
         self.wrappedForm.print()
@@ -79,6 +79,9 @@ class IVCSC:
     
     def norm(self) -> np.double:
         return self.wrappedForm.norm()
+    
+    def byteSize(self) -> np.uint64:
+        return self.wrappedForm.byteSize
     
     def vectorLength(self, vector) -> np.double:
         return self.wrappedForm.vectorLength(vector)
@@ -143,7 +146,31 @@ class IVCSC:
         return self.wrappedForm.getNumIndices()
     
     def append(self, matrix) -> None:
-        self.wrappedForm.append(matrix)
+
+        if isinstance(matrix, IVCSC) and self.major == matrix.major:
+            self.wrappedForm.append(matrix.wrappedForm)
+            self.rows += matrix.shape()[0] # type: ignore 
+            self.cols += matrix.shape()[1] # type: ignore 
+        elif isinstance(matrix, sp.sparse.csc_matrix) and self.major == "Col":
+            self.wrappedForm.append(matrix)
+            self.rows += matrix.shape[0] # type: ignore
+            self.cols += matrix.shape[1] # type: ignore
+        elif isinstance(matrix, sp.sparse.csr_matrix) and self.major == "Row":
+            self.wrappedForm.append(matrix)
+            self.rows += matrix.shape[0] # type: ignore
+            self.cols += matrix.shape[1] # type: ignore
+        else:
+            raise TypeError("Cannot append " + str(type(matrix)) + " to " + str(type(self)))
+
+        self.nnz += matrix.nnz
+
+        if self.major == "Col":
+            self.inner += self.rows
+            self.outer += self.cols
+        else:
+            self.inner += self.cols
+            self.outer += self.rows
+
 
     def slice(self, start, end) -> IVCSC:
         result = self
@@ -177,7 +204,7 @@ class IVCSC:
             self.outer: np.uint32 = spmat.indices
         
         self.wrappedForm = eval(str(moduleName))(spmat)
-        self.byteSize: np.uint64 = self.wrappedForm.byteSize
+        self.bytes: np.uint64 = self.wrappedForm.byteSize
 
     def _COOconstruct(self, moduleName: str, spmat):
         self.rows: np.uint32 = spmat.shape[0]
@@ -192,4 +219,4 @@ class IVCSC:
             self.outer: np.uint32 = spmat.row
 
         self.wrappedForm = eval(str(moduleName))((spmat.row, spmat.col, spmat.data), self.rows, self.cols, spmat.nnz)
-        self.byteSize: np.uint64 = self.wrappedForm.byteSize
+        self.bytes: np.uint64 = self.wrappedForm.byteSize

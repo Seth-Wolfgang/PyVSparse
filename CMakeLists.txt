@@ -7,8 +7,10 @@ project(PyVSparse)
 set(CMAKE_CXX_STANDARD 17)
 
 set(PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
-set(SOURCE_DIR "${PROJECT_ROOT}/src")
-
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+set(WRAPPER_DIR "${SOURCE_DIR}/IVSparse")
+set(IVSPARSE_DEV_DIR "${PROJECT_ROOT}/src/IVSparse/IVSparse-dev")
+set(IVSPARSE_DIR "${IVSPARSE_DEV_DIR}/IVSparse")
 
 FetchContent_Declare(
   pybind11
@@ -23,33 +25,33 @@ find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 FetchContent_MakeAvailable(pybind11)
 
-include_directories(${IVSPARSE} ${PROJECT_ROOT} ${PROJECT_ROOT}/IVSparse-dev ${PROJECT_ROOT}/IVSparse-dev/IVSparse )
-link_directories(${IVSPARSE} ${PROJECT_ROOT} ${PROJECT_ROOT}/IVSparse-dev ${PROJECT_ROOT}/IVSparse-dev/IVSparse)
-add_library(IVSparse STATIC ${PROJECT_ROOT}/IVSparse-dev/IVSparse/SparseMatrix )
+include_directories(${IVSPARSE_DEV_DIR} ${IVSPARSE_DIR} )
+link_directories(${IVSPARSE_DIR} ${IVSPARSE_DEV_DIR})
+add_library(IVSparse STATIC ${IVSPARSE_DIR}/SparseMatrix )
 set_target_properties(IVSparse PROPERTIES LINKER_LANGUAGE CXX)
 
-pybind11_add_module(PyVSparse ${SOURCE_DIR}/PyVSparse.cpp ${SOURCE_DIR}/IVCSC/IVCSC_Wrapper.cpp ${SOURCE_DIR}/VCSC/VCSC_Wrapper.cpp)
-target_include_directories(PyVSparse PRIVATE ${SOURCE_DIR}/VCSC/VCSC_Wrapper.hpp ${SOURCE_DIR}/IVCSC/IVCSC_Wrapper.hpp)
+pybind11_add_module(_PyVSparse ${WRAPPER_DIR}/PyVSparse.cpp ${WRAPPER_DIR}/IVCSC/IVCSC_Wrapper.cpp ${WRAPPER_DIR}/VCSC/VCSC_Wrapper.cpp)
+target_include_directories(_PyVSparse PRIVATE ${WRAPPER_DIR})
 
-target_link_libraries(PyVSparse PRIVATE pybind11::module pybind11::lto pybind11::windows_extras)
+target_link_libraries(_PyVSparse PRIVATE pybind11::module pybind11::lto pybind11::windows_extras)
 
-pybind11_extension(PyVSparse)
+pybind11_extension(_PyVSparse)
 
 if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
     # Strip unnecessary sections of the binary on Linux/macOS
-    pybind11_strip(PyVSparse)
+    pybind11_strip(_PyVSparse)
 endif()
 
 
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(PyVSparse  PUBLIC OpenMP::OpenMP_CXX)
-    set_target_properties(PyVSparse  PROPERTIES COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
+    target_link_libraries(_PyVSparse  PUBLIC OpenMP::OpenMP_CXX)
+    set_target_properties(_PyVSparse  PROPERTIES COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
 endif()
 
-set_target_properties(PyVSparse PROPERTIES CXX_VISIBILITY_PRESET "hidden"
+set_target_properties(_PyVSparse PROPERTIES CXX_VISIBILITY_PRESET "hidden"
                                          CUDA_VISIBILITY_PRESET "hidden")
-target_compile_definitions(PyVSparse PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
-
+target_compile_definitions(_PyVSparse PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
+install(TARGETS _PyVSparse DESTINATION PyVSparse)
 

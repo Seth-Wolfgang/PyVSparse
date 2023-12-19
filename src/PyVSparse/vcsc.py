@@ -1,10 +1,11 @@
 from __future__ import annotations
 from typing import overload
-import PyVSparse._VCSC
+
 import scipy as sp
 import numpy as np
 
-from ivcsc import IVCSC
+from PyVSparse.ivcsc import IVCSC
+import PyVSparse 
 
 class VCSC:
 
@@ -29,14 +30,14 @@ class VCSC:
         
         if(spmat.format == "csc"):
             self.major = "Col"
-            moduleName = "PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
             self.major = "Row"
-            moduleName = "PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)    
+            moduleName = "PyVSparse._PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)    
             self._COOconstruct(moduleName, spmat)
         elif(hasattr(spmat, "wrappedForm")):
             self = spmat
@@ -50,7 +51,7 @@ class VCSC:
         self.nnz = vcsc.nnz
         self.inner = vcsc.inner
         self.outer = vcsc.outer
-        self.byteSize = vcsc.byteSize
+        self.bytes = vcsc.byteSize()
 
     
     def __repr__(self):
@@ -92,6 +93,9 @@ class VCSC:
     
     def minRowCoeff(self) -> list[int]:
         return self.wrappedForm.minRowCoeff()
+
+    def byteSize(self) -> np.uint64:
+        return self.wrappedForm.byteSize
     
     def norm(self) -> np.double:
         return self.wrappedForm.norm()
@@ -167,12 +171,38 @@ class VCSC:
         return self.wrappedForm.getNumIndices()
     
     def append(self, matrix) -> None:
-        self.wrappedForm.append(matrix)
+
+        if isinstance(matrix, VCSC) and self.major == matrix.major:
+            self.wrappedForm.append(matrix.wrappedForm)
+            self.rows += matrix.shape()[0] # type: ignore
+            self.cols += matrix.shape()[1] # type: ignore
+        elif isinstance(matrix, sp.sparse.csc_matrix) and self.major == "Col":
+            self.wrappedForm.append(matrix)
+            self.rows += matrix.shape[0] # type: ignore
+            self.cols += matrix.shape[1] # type: ignore
+        elif isinstance(matrix, sp.sparse.csr_matrix) and self.major == "Row":
+            self.wrappedForm.append(matrix.tocsc())
+            self.rows += matrix.shape[0] # type: ignore
+            self.cols += matrix.shape[1] # type: ignore
+        else:
+            raise TypeError("Cannot append " + str(type(matrix)) + " to " + str(type(self)))
+
+        self.nnz += matrix.nnz
+
+        if self.major == "Col":
+            self.inner += self.rows
+            self.outer += self.cols
+        else:
+            self.inner += self.cols
+            self.outer += self.rows
+
+
 
     def slice(self, start, end) -> VCSC: 
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
-        
+        result.nnz = result.wrappedForm.nnz
+
         if(self.major == "Col"):
             result.inner = self.rows
             result.outer = end - start
@@ -195,7 +225,7 @@ class VCSC:
         self.outer: np.uint32 = spmat.indptr
         # print("Constructing VCSC with moduleName: ", moduleName)
         self.wrappedForm = eval(str(moduleName))(spmat)
-        self.byteSize: np.uint64 = self.wrappedForm.byteSize
+        self.bytes: np.uint64 = self.wrappedForm.byteSize
 
     def _COOconstruct(self, moduleName: str, spmat):
         self.rows: np.uint32 = spmat.shape[0]
@@ -210,4 +240,4 @@ class VCSC:
             self.outer: np.uint32 = spmat.row
 
         self.wrappedForm = eval(str(moduleName))((spmat.row, spmat.col, spmat.data), self.rows, self.cols, spmat.nnz)
-        self.byteSize: np.uint64 = self.wrappedForm.byteSize
+        self.bytes: np.uint64 = self.wrappedForm.byteSize

@@ -2,7 +2,7 @@
 #include "IVCSC/IVCSC_Wrapper.cpp"
 #include "VCSC/VCSC_Wrapper.cpp"
 
-PYBIND11_MODULE(PyVSparse, m) {
+PYBIND11_MODULE(_PyVSparse, m) {
     m.doc() = "pybind11 example plugin"; // optional module docstring
 
 
