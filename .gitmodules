@@ -5,3 +5,6 @@
 	path = src/IVSparse/IVSparse-dev
 	url = https://github.com/Seth-Wolfgang/IVSparse-dev.git
 	branch = WolfgangBranch
+[submodule "src/eigen"]
+	path = src/eigen
+	url = https://gitlab.com/libeigen/eigen.git

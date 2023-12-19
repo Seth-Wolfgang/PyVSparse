@@ -13,12 +13,15 @@ set(IVSPARSE_DEV_DIR "${PROJECT_ROOT}/src/IVSparse/IVSparse-dev")
 set(IVSPARSE_DIR "${IVSPARSE_DEV_DIR}/IVSparse")
 
 FetchContent_Declare(
-  pybind11
-  GIT_REPOSITORY https://github.com/pybind/pybind11.git
-  GIT_TAG v2.11.1
-  SOURCE_DIR ${SOURCE_DIR}/pybind11)
+    pybind11
+    GIT_REPOSITORY https://github.com/pybind/pybind11.git
+    GIT_TAG v2.11.1
+    SOURCE_DIR ${SOURCE_DIR}/pybind11)
 
-
+FetchContent_Declare(
+    Eigen
+    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+    SOURCE_DIR ${SOURCE_DIR}/eigen)
 
 
 set(PYBIND11_FINDPYTHON ON)
@@ -27,7 +30,7 @@ find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 FetchContent_MakeAvailable(pybind11)
 
-include_directories(${IVSPARSE_DEV_DIR} ${IVSPARSE_DIR} )
+include_directories(${IVSPARSE_DEV_DIR} ${IVSPARSE_DIR} ${SOURCE_DIR}/eigen)
 link_directories(${IVSPARSE_DIR} ${IVSPARSE_DEV_DIR})
 add_library(IVSparse STATIC ${IVSPARSE_DIR}/SparseMatrix )
 set_target_properties(IVSparse PROPERTIES LINKER_LANGUAGE CXX)
