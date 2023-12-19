@@ -3,5 +3,5 @@
 	url = https://github.com/pybind/pybind11.git
 [submodule "src/IVSparse/IVSparse-dev"]
 	path = src/IVSparse/IVSparse-dev
-	url = git@github.com:Seth-Wolfgang/IVSparse-dev.git
+	url = https://github.com/Seth-Wolfgang/IVSparse-dev.git
 	branch = WolfgangBranch
