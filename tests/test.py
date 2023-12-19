@@ -94,7 +94,14 @@ class Test:
     def csc_from_ivcsc(self, IVCSCMatrix):
         if(IVCSCMatrix.major == "row"):
             pytest.skip("Skipping toCSC test for csr matrix")
-        return IVCSCMatrix.toCSC()
+        return IVCSCMatrix.toCSC()    
+    
+    
+    def testTrace(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+        if rows != cols:
+            pytest.skip("Skipping trace test for non-square matrix")
+        assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
+        assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
 
     # def testVectorLength(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
     #     for x in range(SPMatrix.shape(1)):

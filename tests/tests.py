@@ -169,12 +169,6 @@ class Test:
         assert epsilon > abs(VCSCMatrix_copy.sum() - VCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
         assert epsilon > abs(IVCSCMatrix_copy.sum() - IVCSCMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(IVCSCMatrix.sum())
 
-    def testTrace(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        if rows != cols:
-            pytest.skip("Skipping trace test for non-square matrix")
-        assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
-        assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
-
     def testNorm(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
         val = sp.sparse.linalg.norm(SPMatrix, "fro")
         assert epsilon > abs(VCSCMatrix.norm() - IVCSCMatrix.norm())
