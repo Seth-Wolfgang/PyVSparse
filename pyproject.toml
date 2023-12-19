@@ -29,6 +29,19 @@ requires-python = ">=3.7"
 IVSparse = "https://github.com/Seth-Wolfgang/IVSparse"
 PyVSparse = "https://github.com/Seth-Wolfgang/PyVSparse"
 
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.scikit-build]
+wheel.expand-macos-universal-tags = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/tests.py"]
+filterwarnings = [
+    "error",
+]
+
 [tool.cibuildwheel]
 test-command = "pytest {project}/tests/tests.py"
 test-extras = ["test"]
