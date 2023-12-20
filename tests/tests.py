@@ -2,7 +2,6 @@
 import random
 
 from matplotlib.pylab import f
-from netaddr import P
 import PyVSparse.ivcsc as ivcsc
 import PyVSparse.vcsc as vcsc
 import scipy as sp

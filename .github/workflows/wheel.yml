@@ -1,0 +1,26 @@
+
+on: 
+  workflow_run:
+    workflows: [pip]
+    types: [completed]
+
+jobs:
+  upload_all_on_success:
+    name: Upload if tests are succesful
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: pypi
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: artifact
+        path: dist
+
+    - uses: pypa/gh-action-pypi-publish@release/v1

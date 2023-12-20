@@ -6,8 +6,7 @@ Python wrapper for IVSparse
 Dependancies
 - numpy
 - scipy
-- scikit-build
-- cmake
+- matplotlib
 - python 3.9 or higher
 
 
