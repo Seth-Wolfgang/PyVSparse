@@ -5,10 +5,10 @@ Python wrapper for IVSparse
 
 Dependancies
 - numpy
-- setuptools
-- ninja
+- scipy
+- scikit-build
 - cmake
-- python 3.8 or higher
+- python 3.9 or higher
 
 
 Install with Pip by using
@@ -29,6 +29,5 @@ pip install .
 
 # Todo
 1. Finish wrapper
-2. obfuscate the wrapped code (hidden submodule). Why? type in  `print(dir(PyVSparse))` 
-3. parallelize compilation
-4. [PyPi compiliance](https://packaging.python.org/en/latest/tutorials/packaging-projects/)
+2. parallelize compilation
+3. [PyPi compiliance](https://packaging.python.org/en/latest/tutorials/packaging-projects/)

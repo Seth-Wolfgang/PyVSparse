@@ -3,7 +3,7 @@ requires = ["scikit-build-core>=0.3.3", "pybind11"]
 build-backend = "scikit_build_core.build"
 
 [tool.mypy]
-files = "setup.py"
+# files = "setup.py"
 python_version = "3.10"
 strict = true
 show_error_codes = true
@@ -12,31 +12,34 @@ warn_unreachable = true
 
 
 [[tool.mypy.overrides]]
-module = ["ninja"]
 ignore_missing_imports = true
 
 [project]
 name = "PyVSparse"
-version = "0.0.1"
+version = "0.1.4"
 authors = [
     {name = "Seth Wolfgang", email = "wolfgangseth@gmail.com"}
 ]
 description = "A Python wrapper for IVSparse"
-requires-python = ">=3.7"
+License = "Apache-2.0"
+requires-python = ">=3.9"
 dependencies = [
-    "numpy", 
-    "scipy",
-    "scikit-build",
-    "pybind11",
-    "ninja",
-    "matplotlib",
-    "netaddr"
+    "numpy ~= 1.26.0", 
+    "scipy ~=1.11.2",
+    "matplotlib~=3.8.0",
 ]
+install_requires = [
+    "numpy ~= 1.26.0", 
+    "scipy ~=1.11.2",
+    "matplotlib~=3.8.0",
+]
+
 
 
 [project.urls]
 IVSparse = "https://github.com/Seth-Wolfgang/IVSparse"
 PyVSparse = "https://github.com/Seth-Wolfgang/PyVSparse"
+PyVSparse-Issues = "https://github.com/Seth-Wolfgang/PyVSparse/issues"
 
 
 [project.optional-dependencies]
