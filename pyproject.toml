@@ -29,7 +29,8 @@ dependencies = [
     "scikit-build",
     "pybind11",
     "ninja",
-    "matplotlib"
+    "matplotlib",
+    "netaddr"
 ]
 
 
