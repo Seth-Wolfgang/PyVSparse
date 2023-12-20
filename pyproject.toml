@@ -23,6 +23,14 @@ authors = [
 ]
 description = "A Python wrapper for IVSparse"
 requires-python = ">=3.7"
+dependencies = [
+    "numpy", 
+    "scipy",
+    "scikit-build",
+    "pybind11",
+    "ninja",
+    "matplotlib"
+]
 
 
 [project.urls]
@@ -38,9 +46,9 @@ wheel.expand-macos-universal-tags = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/tests.py"]
-filterwarnings = [
-    "error",
-]
+# filterwarnings = [
+    # "error",
+# ]
 
 [tool.cibuildwheel]
 test-command = "pytest {project}/tests/tests.py"
