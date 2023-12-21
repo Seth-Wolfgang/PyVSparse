@@ -16,6 +16,7 @@ class VCSC:
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
         self.indexT = np.dtype(indexT)
+        
 
         if(isinstance(self.indexT, type(np.dtype(np.uint32)))):
             self.indexT = np.uint32
