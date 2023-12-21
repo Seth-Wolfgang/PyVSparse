@@ -58,7 +58,7 @@ class Test:
     @pytest.fixture(params=indexTypes)
     def VCSCMatrix(self, SPMatrix, request):
         # print(request.param)
-        return vcsc.VCSC(SPMatrix)
+        return vcsc.VCSC(SPMatrix)#, indexT = request.param)
 
     @pytest.fixture
     def IVCSCMatrix(self, SPMatrix):

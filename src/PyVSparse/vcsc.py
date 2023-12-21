@@ -15,9 +15,8 @@ class VCSC:
 
         self.major = major.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
-        self.indexT = np.dtype(indexT)
-        
-
+        self.indexT = np.dtype(indexT) 
+    
         if(isinstance(self.indexT, type(np.dtype(np.uint32)))):
             self.indexT = np.uint32
         elif(isinstance(self.indexT, type(np.dtype(np.uint64)))):
@@ -28,7 +27,10 @@ class VCSC:
             self.indexT = np.uint8
         else:
             raise TypeError("indexT must be one of: np.uint8, np.uint16, np.uint32, np.uint64")
-        
+
+        if self.major != "Col" and self.major != "Row":
+            raise TypeError("major must be one of: 'Col', 'Row'")
+
         if(spmat.format == "csc"):
             self.major = "Col"
             moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
@@ -40,7 +42,7 @@ class VCSC:
         elif(spmat.format == "coo"):
             moduleName = "PyVSparse._PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)    
             self._COOconstruct(moduleName, spmat)
-        elif(hasattr(spmat, "wrappedForm")):
+        elif(isinstance(spmat, VCSC)): # TODO test
             self = spmat
 
     def fromPyVSparse(self, vcsc: VCSC):
@@ -71,37 +73,37 @@ class VCSC:
     #     else:
     #         raise StopIteration
         
-    def sum(self) -> int:
+    def sum(self) -> int: # tested
         return self.wrappedForm.sum()
 
-    def trace(self) -> int:
+    def trace(self) -> int: # TODO fix
         return self.wrappedForm.trace()
 
-    def outerSum(self) -> list[int]:
+    def outerSum(self) -> list[int]: # TODO test
         return self.wrappedForm.outerSum()
 
-    def innerSum(self) -> list[int]:
+    def innerSum(self) -> list[int]: # TODO test
         return self.wrappedForm.innerSum()
     
-    def maxColCoeff(self) -> list[int]:
+    def maxColCoeff(self) -> list[int]: # TODO test
         return self.wrappedForm.maxColCoeff()
     
-    def maxRowCoeff(self) -> list[int]:
+    def maxRowCoeff(self) -> list[int]: # TODO test
         return self.wrappedForm.maxRowCoeff()
 
-    def minColCoeff(self) -> list[int]:
+    def minColCoeff(self) -> list[int]: # TODO test
         return self.wrappedForm.minColCoeff()
     
-    def minRowCoeff(self) -> list[int]:
+    def minRowCoeff(self) -> list[int]: # TODO test
         return self.wrappedForm.minRowCoeff()
 
-    def byteSize(self) -> np.uint64:
+    def byteSize(self) -> np.uint64: # TODO test
         return self.wrappedForm.byteSize
     
-    def norm(self) -> np.double:
+    def norm(self) -> np.double: 
         return self.wrappedForm.norm()
     
-    def vectorLength(self, vector) -> np.double:
+    def vectorLength(self, vector) -> np.double: # TODO test
         return self.wrappedForm.vectorLength(vector)
 
     def tocsc(self) -> sp.sparse.csc_matrix:
@@ -129,10 +131,10 @@ class VCSC:
         
     
 
-    def shape(self) -> tuple[np.uint32, np.uint32]:
+    def shape(self) -> tuple[np.uint32, np.uint32]: # TODO test
         return (self.rows, self.cols)
     
-    def __imul__(self, other: np.ndarray) -> VCSC:
+    def __imul__(self, other: np.ndarray) -> VCSC: 
 
         if(type(other) == int or type(other) == float):
             self.wrappedForm.__imul__(other)
@@ -159,19 +161,19 @@ class VCSC:
     def __ne__(self, other) -> bool:
         return self.wrappedForm.__ne__(other)
     
-    def getValues(self) -> list[int]:
+    def getValues(self) -> list[int]: # TODO test
         return self.wrappedForm.getValues()
     
-    def getIndices(self) -> list[int]:
+    def getIndices(self) -> list[int]: # TODO test
         return self.wrappedForm.getIndices()
     
-    def getCounts(self) -> list[int]:
+    def getCounts(self) -> list[int]: # TODO test
         return self.wrappedForm.getCounts()
     
-    def getNumIndices(self) -> list[int]:
+    def getNumIndices(self) -> list[int]: # TODO test
         return self.wrappedForm.getNumIndices()
     
-    def append(self, matrix) -> None:
+    def append(self, matrix) -> None: # TODO fix
 
         if isinstance(matrix, VCSC) and self.major == matrix.major:
             self.wrappedForm.append(matrix.wrappedForm)
@@ -199,7 +201,7 @@ class VCSC:
 
 
 
-    def slice(self, start, end) -> VCSC: 
+    def slice(self, start, end) -> VCSC:  # TODO fix
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
         result.nnz = result.wrappedForm.nnz
@@ -228,7 +230,7 @@ class VCSC:
         self.wrappedForm = eval(str(moduleName))(spmat)
         self.bytes: np.uint64 = self.wrappedForm.byteSize
 
-    def _COOconstruct(self, moduleName: str, spmat):
+    def _COOconstruct(self, moduleName: str, spmat): # TODO test
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
