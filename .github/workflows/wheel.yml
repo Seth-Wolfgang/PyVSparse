@@ -1,3 +1,4 @@
+name: Wheel
 
 on: 
   workflow_run:
