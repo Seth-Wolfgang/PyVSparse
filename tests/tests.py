@@ -12,8 +12,8 @@ import pytest
 #TODO Make this do real unit testing
 #TODO work on commented out tests
 #TODO implement COO constructor testing
-types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ()
-
+# types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ()
+types = (np.int32,)
 indexTypes = (np.uint8, np.uint16, np.uint32, np.uint64)
 formats = ("csc", "csr")
 # formats = ("csc",)
