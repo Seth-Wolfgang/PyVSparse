@@ -21,9 +21,7 @@ authors = [
     {name = "Seth Wolfgang", email = "wolfgangseth@gmail.com"}
 ]
 description = "A Python wrapper for IVSparse"
-long_description = """
-A Python wrapper for IVSparse. IVSparse is a C++ library for redundant sparse matrix operations.
-"""
+readme = "README.md"
 License = "Apache-2.0"
 requires-python = ">=3.9"
 dependencies = [
