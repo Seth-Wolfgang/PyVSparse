@@ -9,11 +9,11 @@ import PyVSparse
 
 class VCSC:
 
-    def __init__(self, spmat, major: str = "col", indexT: np.dtype = np.dtype(np.uint32)):
+    def __init__(self, spmat, order: str = "col", indexT: np.dtype = np.dtype(np.uint32)):
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
 
-        self.major = major.lower().capitalize()
+        self.order = order.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
         self.indexT = np.dtype(indexT) 
     
@@ -28,19 +28,19 @@ class VCSC:
         else:
             raise TypeError("indexT must be one of: np.uint8, np.uint16, np.uint32, np.uint64")
 
-        if self.major != "Col" and self.major != "Row":
+        if self.order != "Col" and self.order != "Row":
             raise TypeError("major must be one of: 'Col', 'Row'")
 
         if(spmat.format == "csc"):
-            self.major = "Col"
-            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
+            self.order = "Col"
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
             self._CSconstruct(moduleName, spmat)
         elif(spmat.format == "csr"):
-            self.major = "Row"
-            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)
+            self.order = "Row"
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.major)    
+            moduleName = "PyVSparse._PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)    
             self._COOconstruct(moduleName, spmat)
         elif(isinstance(spmat, VCSC)): # TODO test
             self = spmat
@@ -107,12 +107,12 @@ class VCSC:
         return self.wrappedForm.vectorLength(vector)
 
     def tocsc(self) -> sp.sparse.csc_matrix:
-        if self.major == "Row":
+        if self.order == "Row":
             return self.wrappedForm.toEigen().tocsc()
         return self.wrappedForm.toEigen()
     
     def tocsr(self) -> sp.sparse.csr_matrix:
-        if self.major == "Col":
+        if self.order == "Col":
             return self.tocsc().tocsr()
         else:
             return self.wrappedForm.toEigen()
@@ -175,15 +175,15 @@ class VCSC:
     
     def append(self, matrix) -> None: # TODO fix
 
-        if isinstance(matrix, VCSC) and self.major == matrix.major:
+        if isinstance(matrix, VCSC) and self.order == matrix.order:
             self.wrappedForm.append(matrix.wrappedForm)
             self.rows += matrix.shape()[0] # type: ignore
             self.cols += matrix.shape()[1] # type: ignore
-        elif isinstance(matrix, sp.sparse.csc_matrix) and self.major == "Col":
+        elif isinstance(matrix, sp.sparse.csc_matrix) and self.order == "Col":
             self.wrappedForm.append(matrix)
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
-        elif isinstance(matrix, sp.sparse.csr_matrix) and self.major == "Row":
+        elif isinstance(matrix, sp.sparse.csr_matrix) and self.order == "Row":
             self.wrappedForm.append(matrix.tocsc())
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
@@ -192,7 +192,7 @@ class VCSC:
 
         self.nnz += matrix.nnz
 
-        if self.major == "Col":
+        if self.order == "Col":
             self.inner += self.rows
             self.outer += self.cols
         else:
@@ -206,7 +206,7 @@ class VCSC:
         result.wrappedForm = self.wrappedForm.slice(start, end)
         result.nnz = result.wrappedForm.nnz
 
-        if(self.major == "Col"):
+        if(self.order == "Col"):
             result.inner = self.rows
             result.outer = end - start
             result.cols = result.outer
@@ -235,7 +235,7 @@ class VCSC:
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
         
-        if(self.major == "Col"):
+        if(self.order == "Col"):
             self.inner: np.uint32 = spmat.row
             self.outer: np.uint32 = spmat.col
         else:

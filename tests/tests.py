@@ -2,18 +2,19 @@
 import random
 
 from matplotlib.pylab import f
+from sqlalchemy import true
 import PyVSparse.ivcsc as ivcsc
 import PyVSparse.vcsc as vcsc
 import scipy as sp
 import numpy as np
 import pytest
 
-#TODO CSR doesn't work for toCSC() -> IVSparse needs to CSR
+#TODO CSR doesn't work for tocsc() -> IVSparse needs to CSR
 #TODO Make this do real unit testing
 #TODO work on commented out tests
 #TODO implement COO constructor testing
-# types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ()
-types = (np.int32,)
+types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ()
+# types = (np.int32,)
 indexTypes = (np.uint8, np.uint16, np.uint32, np.uint64)
 formats = ("csc", "csr")
 # formats = ("csc",)
@@ -73,26 +74,26 @@ class Test:
     @pytest.fixture
     def csr_from_vcsc(self, VCSCMatrix):
         if(VCSCMatrix.major == "col"):
-            pytest.skip("Skipping toCSR test for csc matrix")
-        return VCSCMatrix.toCSR()
+            pytest.skip("Skipping tocsr test for csc matrix")
+        return VCSCMatrix.tocsr()
 
     @pytest.fixture
     def csr_from_ivcsc(self, IVCSCMatrix):   
         if(IVCSCMatrix.major == "col"):
-            pytest.skip("Skipping toCSR test for csc matrix")
-        return IVCSCMatrix.toCSR()
+            pytest.skip("Skipping tocsr test for csc matrix")
+        return IVCSCMatrix.tocsr()
 
     @pytest.fixture
     def csc_from_vcsc(self, VCSCMatrix):
         if(VCSCMatrix.major == "row"):
-            pytest.skip("Skipping toCSC test for csr matrix")
-        return VCSCMatrix.toCSC()
+            pytest.skip("Skipping tocsc test for csr matrix")
+        return VCSCMatrix.tocsc()
 
     @pytest.fixture
     def csc_from_ivcsc(self, IVCSCMatrix):
         if(IVCSCMatrix.major == "row"):
-            pytest.skip("Skipping toCSC test for csr matrix")
-        return IVCSCMatrix.toCSC()
+            pytest.skip("Skipping tocsc test for csr matrix")
+        return IVCSCMatrix.tocsc()
 
     def testDtype(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
         assert VCSCMatrix.dtype == SPMatrix.dtype, "VCSCMatrix: " + str(VCSCMatrix.dtype) + " SPMatrix: " + str(SPMatrix.dtype)
@@ -110,7 +111,7 @@ class Test:
             assert VCSCMatrix.major == "Row", "VCSCMatrix: " + str(VCSCMatrix.major) + " myFormat: " + str(formats)
             assert IVCSCMatrix.major == "Row", "IVCSCMatrix: " + str(IVCSCMatrix.major) + " myFormat: " + str(formats)
 
-    def testToCSR(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
+    def testtocsr(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
         csc_from_ivcsc = IVCSCMatrix.tocsr()
         csc_from_vcsc = VCSCMatrix.tocsr()
 
@@ -124,7 +125,7 @@ class Test:
             for y in range(csc_from_ivcsc.shape[1]):
                 assert epsilon > abs(csc_from_ivcsc[x, y] - csc_from_vcsc[x, y]), "csc_from_ivcsc: " + str(csc_from_ivcsc[x, y]) + " csc_from_vcsc: " + str(csc_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
 
-    def testToCSC(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
+    def testtocsc(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
         csc_from_ivcsc = IVCSCMatrix.tocsc()
         csc_from_vcsc = VCSCMatrix.tocsc()
 
@@ -194,13 +195,30 @@ class Test:
         SPMatrix *= 2
 
         assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(VCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
+        if(SPMatrix.format == "csr"):
+            IVCSC_check = VCSCMatrix.tocsr()
+        else:
+            IVCSC_check = VCSCMatrix.tocsc()
+        
+        result = (IVCSC_check - SPMatrix).toarray()
+        np.testing.assert_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[1])), decimal=3, verbose=True)
+
 
     def testScalarMultiplyVCSC(self, SPMatrix, VCSCMatrix):
         VCSCresult = VCSCMatrix * 2
         SPresult = SPMatrix * 2
-
+        
         assert epsilon > abs(VCSCresult.sum() - SPresult.sum())
         assert VCSCresult.shape() == SPresult.shape
+        if(SPMatrix.format == "csr"):
+            IVCSC_check = VCSCresult.tocsr()
+        else:
+            IVCSC_check = VCSCresult.tocsc()
+        
+        result = (IVCSC_check - SPresult).toarray()
+        np.testing.assert_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[1])), decimal=3, verbose=True)
+
+
 
     def testIPScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
         IVCSCMatrix *= 2
@@ -208,6 +226,15 @@ class Test:
 
         assert epsilon > abs(IVCSCMatrix.sum() - SPMatrix.sum()), " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
         assert IVCSCMatrix.shape() == SPMatrix.shape, " IVCSCMatrix: " + str(IVCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
+        
+        if(SPMatrix.format == "csr"):
+            IVCSC_check = IVCSCMatrix.tocsr()
+        else:
+            IVCSC_check = IVCSCMatrix.tocsc()
+        
+        result = (IVCSC_check - SPMatrix).toarray()
+        np.testing.assert_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[1])), decimal=3, verbose=True)
+
 
     def testScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
         IVCSCresult = IVCSCMatrix * 2
@@ -215,28 +242,32 @@ class Test:
 
         assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
         assert IVCSCresult.shape() == SPresult.shape, "IVCSCresult: " + str(IVCSCresult.shape) + " SPresult: " + str(SPresult.shape)
+        if(SPMatrix.format == "csr"):
+            IVCSC_check = IVCSCresult.tocsr()
+        else:
+            IVCSC_check = IVCSCresult.tocsc()
+        
+        result = (IVCSC_check - SPresult).toarray()
+        np.testing.assert_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[1])), decimal=3, verbose=True)
+
+
 
     def testMatrixMultiplyVCSC(self, SPMatrix, VCSCMatrix):
         VCSCresult = VCSCMatrix *  SPMatrix.transpose().toarray()
         SPresult = SPMatrix *  SPMatrix.transpose().toarray()
 
         # assert epsilon > abs(VCSCresult.sum() - SPresult.sum()), "VCSCresult: " + str(VCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
-        result = VCSCresult - SPresult # SHOULD be a matrix of all zeros
-        for x in result:
-            for y in x:
-                assert epsilon > abs(y), "VCSCresult: " + str(VCSCresult) + " SPresult: " + str(SPresult)
+    
+        result = (VCSCresult - SPresult) # SHOULD be a matrix of all zeros
+        np.testing.assert_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[0])), decimal=3, verbose=True)
 
     def testMatrixMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
         IVCSCresult = IVCSCMatrix * SPMatrix.transpose().toarray()
         SPresult = SPMatrix * SPMatrix.transpose().toarray()
 
-        print("Shape", IVCSCMatrix.shape())
-
         # assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
-        result = IVCSCresult - SPresult # SHOULD be a matrix of all zeros
-        for x in result:
-            for y in x:
-                assert epsilon > abs(y), "IVCSCresult: " + str(IVCSCresult) + " SPresult: " + str(SPresult)
+        result = (IVCSCresult - SPresult) # SHOULD be a matrix of all zeros
+        np.testing.assert_array_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[0])), decimal=3, verbose=True)
 
 
     def testAppendOwnFormat(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
@@ -248,7 +279,11 @@ class Test:
         VCSC2CSC = VCSCMat2.tocsc()
         IVCSC2CSC = IVCSCMat2.tocsc()
 
-        result = (VCSC2CSC - IVCSC2CSC).todense()
-        for x in range(result.shape[0]):
-            for y in range(result.shape[1]):
-                assert epsilon > abs(result[x, y]), "VCSC2CSC: " + str(VCSC2CSC[x, y]) + " IVCSC2CSC: " + str(IVCSC2CSC[x, y]) + " Diff: " + str(abs(result[x, y]))
+        result = (VCSC2CSC - IVCSC2CSC).toarray()
+        np.testing.assert_array_almost_equal(result, np.zeros((result.shape[0], result.shape[1])), decimal=3, verbose=True)
+    
+    def testTrace(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+        if rows != cols:
+            pytest.skip("Skipping trace test for non-square matrix")
+        assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
+        assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())

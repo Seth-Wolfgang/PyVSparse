@@ -9,32 +9,32 @@
 template <typename T>
 void generateVCSCForEachIndexType(py::module& m) {
 
-    py::class_<IVSparse::VCSC<T, uint8_t, false>> mat1 = declareVCSC<T, uint8_t, false>(m);
-    py::class_<IVSparse::VCSC<T, uint8_t, true>> mat2 = declareVCSC<T, uint8_t, true>(m);
-    py::class_<IVSparse::VCSC<T, uint16_t, false>> mat3 = declareVCSC<T, uint16_t, false>(m);
-    py::class_<IVSparse::VCSC<T, uint16_t, true>> mat4 = declareVCSC<T, uint16_t, true>(m);
+    // py::class_<IVSparse::VCSC<T, uint8_t, false>> mat1 = declareVCSC<T, uint8_t, false>(m);
+    // py::class_<IVSparse::VCSC<T, uint8_t, true>> mat2 = declareVCSC<T, uint8_t, true>(m);
+    // py::class_<IVSparse::VCSC<T, uint16_t, false>> mat3 = declareVCSC<T, uint16_t, false>(m);
+    // py::class_<IVSparse::VCSC<T, uint16_t, true>> mat4 = declareVCSC<T, uint16_t, true>(m);
     py::class_<IVSparse::VCSC<T, uint32_t, false>> mat5 = declareVCSC<T, uint32_t, false>(m);
     py::class_<IVSparse::VCSC<T, uint32_t, true>> mat6 = declareVCSC<T, uint32_t, true>(m);
-    py::class_<IVSparse::VCSC<T, uint64_t, false>> mat7 = declareVCSC<T, uint64_t, false>(m);
-    py::class_<IVSparse::VCSC<T, uint64_t, true>> mat8 = declareVCSC<T, uint64_t, true>(m);
+    // py::class_<IVSparse::VCSC<T, uint64_t, false>> mat7 = declareVCSC<T, uint64_t, false>(m);
+    // py::class_<IVSparse::VCSC<T, uint64_t, true>> mat8 = declareVCSC<T, uint64_t, true>(m);
 
-    declareVCSCFuncs<T, uint8_t, false>(m, mat1);
-    declareVCSCFuncs<T, uint8_t, true>(m, mat2);
-    declareVCSCFuncs<T, uint16_t, false>(m, mat3);
-    declareVCSCFuncs<T, uint16_t, true>(m, mat4);
+    // declareVCSCFuncs<T, uint8_t, false>(m, mat1);
+    // declareVCSCFuncs<T, uint8_t, true>(m, mat2);
+    // declareVCSCFuncs<T, uint16_t, false>(m, mat3);
+    // declareVCSCFuncs<T, uint16_t, true>(m, mat4);
     declareVCSCFuncs<T, uint32_t, false>(m, mat5);
     declareVCSCFuncs<T, uint32_t, true>(m, mat6);
-    declareVCSCFuncs<T, uint64_t, false>(m, mat7);
-    declareVCSCFuncs<T, uint64_t, true>(m, mat8);
+    // declareVCSCFuncs<T, uint64_t, false>(m, mat7);
+    // declareVCSCFuncs<T, uint64_t, true>(m, mat8);
 
-    declareVCSCOperators<T, uint8_t, false>(m, mat1);
-    declareVCSCOperators<T, uint8_t, true>(m, mat2);
-    declareVCSCOperators<T, uint16_t, false>(m, mat3);
-    declareVCSCOperators<T, uint16_t, true>(m, mat4);
+    // declareVCSCOperators<T, uint8_t, false>(m, mat1);
+    // declareVCSCOperators<T, uint8_t, true>(m, mat2);
+    // declareVCSCOperators<T, uint16_t, false>(m, mat3);
+    // declareVCSCOperators<T, uint16_t, true>(m, mat4);
     declareVCSCOperators<T, uint32_t, false>(m, mat5);
     declareVCSCOperators<T, uint32_t, true>(m, mat6);
-    declareVCSCOperators<T, uint64_t, false>(m, mat7);
-    declareVCSCOperators<T, uint64_t, true>(m, mat8);
+    // declareVCSCOperators<T, uint64_t, false>(m, mat7);
+    // declareVCSCOperators<T, uint64_t, true>(m, mat8);
 }
 
 

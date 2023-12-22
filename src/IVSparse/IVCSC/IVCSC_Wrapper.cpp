@@ -62,7 +62,10 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("transpose", &IVSparse::IVCSC<T, isColMajor>::transpose, py::return_value_policy::copy);
     mat.def("inPlaceTranspose", &IVSparse::IVCSC<T, isColMajor>::inPlaceTranspose);
     mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, IVSparse::IVCSC<T, isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
-    mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, Eigen::SparseMatrix<T, !isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
+    mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, Eigen::SparseMatrix<T, !isColMajor> other) {
+        std::cout << "eigen: " << std::endl;
+        std::cout <<  other << std::endl;
+        self.append(other); });
     mat.def("slice", &IVSparse::IVCSC<T, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::copy, py::keep_alive<1, 2>());
     mat.def("vectorPointer", &IVSparse::IVCSC<T, isColMajor>::vectorPointer, py::return_value_policy::reference);
     mat.def("getVectorByteSize", &IVSparse::IVCSC<T, isColMajor>::getVectorByteSize, py::return_value_policy::copy);
