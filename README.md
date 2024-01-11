@@ -57,7 +57,7 @@ IVCSC will format it as
  V   W   I       D   V   W   I   D   V   W   I   D
 ```
 
-Key: 
+Key:
 
 - V - Value
 - W - Width
@@ -139,14 +139,29 @@ IVCSC:
  [[-38]
  [-99]
  [ 14]
- [ 22]
+ [ 22]]
 ```
 
 ## Todo
 
-1. Finish wrapper
+1. Finish wrapper (little needs to be done)
 2. Comments
 3. Documentation
 4. Fix dynamic index size for VCSC
 5. parallelize compilation
 6. Compatability for windows and mac
+
+## To cite IVSparse
+
+```text
+@misc{ivsparse,
+  doi = {10.48550/ARXIV.2309.04355},
+  url = {https://arxiv.org/abs/2309.04355},
+  author = {Ruiter,  Skyler and Wolfgang,  Seth and Tunnell,  Marc and Triche,  Timothy and Carrier,  Erin and DeBruine,  Zachary},
+  keywords = {Data Structures and Algorithms (cs.DS),  Machine Learning (cs.LG),  FOS: Computer and information sciences,  FOS: Computer and information sciences},
+  title = {Value-Compressed Sparse Column (VCSC): Sparse Matrix Storage for Redundant Data},
+  publisher = {arXiv},
+  year = {2023},
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+```

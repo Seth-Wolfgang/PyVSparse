@@ -70,7 +70,6 @@ class Test:
     def SPVector(self, SPMatrix):
         return np.ones((SPMatrix.shape[1], 1))  
 
-
     @pytest.fixture
     def csr_from_vcsc(self, VCSCMatrix):
         if(VCSCMatrix.major == "col"):
@@ -111,33 +110,56 @@ class Test:
             assert VCSCMatrix.major == "Row", "VCSCMatrix: " + str(VCSCMatrix.major) + " myFormat: " + str(formats)
             assert IVCSCMatrix.major == "Row", "IVCSCMatrix: " + str(IVCSCMatrix.major) + " myFormat: " + str(formats)
 
-    def testtocsr(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
-        csc_from_ivcsc = IVCSCMatrix.tocsr()
-        csc_from_vcsc = VCSCMatrix.tocsr()
-
-        resultvcsc = csc_from_vcsc - SPMatrix
-        resultivcsc = csc_from_ivcsc - SPMatrix
-
-        assert epsilon > abs(resultvcsc.sum() - resultivcsc.sum()), "resultvcsc: " + str(resultvcsc.sum()) + " resultivcsc: " + str(resultivcsc.sum())
-        assert epsilon > abs(csc_from_ivcsc.sum() - csc_from_vcsc.sum()), "csc_from_ivcsc: " + str(csc_from_ivcsc.sum()) + " csc_from_vcsc: " + str(csc_from_vcsc.sum())
-        
-        for x in range(csc_from_ivcsc.shape[0]):
-            for y in range(csc_from_ivcsc.shape[1]):
-                assert epsilon > abs(csc_from_ivcsc[x, y] - csc_from_vcsc[x, y]), "csc_from_ivcsc: " + str(csc_from_ivcsc[x, y]) + " csc_from_vcsc: " + str(csc_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
-
-    def testtocsc(self, IVCSCMatrix, VCSCMatrix, SPMatrix):
+    def testtocscIVCSC(self, IVCSCMatrix, SPMatrix):
         csc_from_ivcsc = IVCSCMatrix.tocsc()
+
+        result = csc_from_ivcsc - SPMatrix
+
+        assert epsilon > abs(result.sum()), "resultivcsc: " + str(csc_from_ivcsc.sum())
+        
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert epsilon > abs(SPMatrix[x, y] - csc_from_ivcsc[x, y]), "SPMatrix: " + str(SPMatrix[x, y]) + " csc_from_ivcsc: " + str(csc_from_ivcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
+
+    def testtocsrIVCSC(self, IVCSCMatrix, SPMatrix):
+        csr_from_ivcsc = IVCSCMatrix.tocsc()
+
+        result = csr_from_ivcsc - SPMatrix
+
+        assert epsilon > abs(result.sum()), "resultivcsc: " + str(csr_from_ivcsc.sum())
+        
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert epsilon > abs(SPMatrix[x, y] - csr_from_ivcsc[x, y]), "SPMatrix: " + str(SPMatrix[x, y]) + " csc_from_ivcsc: " + str(csr_from_ivcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
+
+
+    def testtocscVCSC(self, VCSCMatrix, SPMatrix):
+        # print(VCSCMatrix)
+
         csc_from_vcsc = VCSCMatrix.tocsc()
 
-        resultvcsc = csc_from_vcsc - SPMatrix
-        resultivcsc = csc_from_ivcsc - SPMatrix
 
-        assert epsilon > abs(resultvcsc.sum() - resultivcsc.sum()), "resultvcsc: " + str(resultvcsc.sum()) + " resultivcsc: " + str(resultivcsc.sum())
-        assert epsilon > abs(csc_from_ivcsc.sum() - csc_from_vcsc.sum()), "csc_from_ivcsc: " + str(csc_from_ivcsc.sum()) + " csc_from_vcsc: " + str(csc_from_vcsc.sum())
+        result = csc_from_vcsc - SPMatrix
+
+        assert epsilon > abs(result.sum()), "resultvcsc: " + str(csc_from_vcsc.sum())
         
-        for x in range(csc_from_ivcsc.shape[0]):
-            for y in range(csc_from_ivcsc.shape[1]):
-                assert epsilon > abs(csc_from_ivcsc[x, y] - csc_from_vcsc[x, y]), "csc_from_ivcsc: " + str(csc_from_ivcsc[x, y]) + " csc_from_vcsc: " + str(csc_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert epsilon > abs(SPMatrix[x, y] - csc_from_vcsc[x, y]), "SPMatrix: " + str(SPMatrix[x, y]) + " csc_from_vcsc: " + str(csc_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
+
+    def testtocsrVCSC(self, VCSCMatrix, SPMatrix):
+        # print(VCSCMatrix)
+
+        csr_from_vcsc = VCSCMatrix.tocsr()
+
+
+        result = csr_from_vcsc - SPMatrix
+
+        assert epsilon > abs(result.sum()), "resultvcsc: " + str(csr_from_vcsc.sum())
+        
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert epsilon > abs(SPMatrix[x, y] - csr_from_vcsc[x, y]), "SPMatrix: " + str(SPMatrix[x, y]) + " csc_from_vcsc: " + str(csr_from_vcsc[x, y]) + " x: " + str(x) + " y: " + str(y)
 
 
     def testCSCConstructionVCSC(self, SPMatrix):
@@ -287,3 +309,48 @@ class Test:
             pytest.skip("Skipping trace test for non-square matrix")
         assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
         assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
+
+    
+    def testAppendCSC_VCSC(self, SPMatrix):
+        if SPMatrix.format == "csr":
+            pytest.skip("Skipping append CSC test because SPMatrix is a csr matrix")
+        SPMatrix3 = sp.sparse.hstack([SPMatrix, SPMatrix]).A
+        VCSCMat = vcsc.VCSC(SPMatrix)   
+        VCSCMat.append(SPMatrix)
+        VCSC2CSC = VCSCMat.tocsc()
+        result = (SPMatrix3 - VCSC2CSC).A
+        np.testing.assert_array_almost_equal(result, np.zeros((SPMatrix3.shape[0], SPMatrix3.shape[1])), decimal=3)
+    
+
+    def testAppendCSC_IVCSC(self, SPMatrix):
+        if SPMatrix.format == "csr":
+            pytest.skip("Skipping append CSC test because SPMatrix is a csr matrix")
+        SPMatrix3 = sp.sparse.hstack([SPMatrix, SPMatrix]).A
+        IVCSCMat = ivcsc.IVCSC(SPMatrix)   
+        IVCSCMat.append(SPMatrix)
+        IVCSC2CSC = IVCSCMat.tocsc()
+        result = (SPMatrix3 - IVCSC2CSC).A
+        np.testing.assert_array_almost_equal(result, np.zeros((SPMatrix3.shape[0], SPMatrix3.shape[1])), decimal=3)
+    
+    
+    def testAppendCSR_VCSC(self, SPMatrix):
+        if SPMatrix.format == "csc":
+            pytest.skip("Skipping append CSR test because SPMatrix is a CSC matrix")
+        SPMatrix3 = sp.sparse.vstack([SPMatrix, SPMatrix]).A
+        VCSCMat = vcsc.VCSC(SPMatrix)   
+        VCSCMat.append(SPMatrix)
+        VCSC2CSC = VCSCMat.tocsr()
+        result = (SPMatrix3 - VCSC2CSC).A
+        np.testing.assert_array_almost_equal(result, np.zeros((SPMatrix3.shape[0], SPMatrix3.shape[1])), decimal=3)
+    
+
+    def testAppendCSR_IVCSC(self, SPMatrix):
+        if SPMatrix.format == "csc":
+            pytest.skip("Skipping append CSR test because SPMatrix is a CSC matrix")
+        SPMatrix3 = sp.sparse.vstack([SPMatrix, SPMatrix]).A
+        IVCSCMat = ivcsc.IVCSC(SPMatrix)   
+        IVCSCMat.append(SPMatrix)
+        IVCSC2CSC = IVCSCMat.tocsr()
+        result = (SPMatrix3 - IVCSC2CSC).A
+        np.testing.assert_array_almost_equal(result, np.zeros((SPMatrix3.shape[0], SPMatrix3.shape[1])), decimal=3)
+    

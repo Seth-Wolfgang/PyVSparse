@@ -5,7 +5,6 @@ from unittest import result
 import scipy as sp
 import numpy as np
 import PyVSparse
-# scipyFormats = TypeVar("scipyFormats", sp.sparse.csr_matrix, sp.sparse.csc_matrix, sp.sparse.coo_matrix)
 
 class IVCSC:
     def __init__(self, spmat, order: str = "col"): # add scipySparseMat: scipyFormat as type hint
@@ -142,17 +141,14 @@ class IVCSC:
     def append(self, matrix) -> None: # TODO fix
 
         if isinstance(matrix, IVCSC) and self.order == matrix.order:
-            print("appending ivcsc")
             self.wrappedForm.append(matrix.wrappedForm)
             self.rows += matrix.shape()[0] # type: ignore 
             self.cols += matrix.shape()[1] # type: ignore 
         elif isinstance(matrix, sp.sparse.csc_matrix) and self.order == "Col":
-            print("appending csc")
             self.wrappedForm.append(matrix)
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
         elif isinstance(matrix, sp.sparse.csr_matrix) and self.order == "Row":
-            print("appending csr")
             self.wrappedForm.append(matrix)
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
@@ -191,7 +187,6 @@ class IVCSC:
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
-
 
         if(self.order == "Col"):
             self.inner: np.uint32 = spmat.indices

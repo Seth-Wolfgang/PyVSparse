@@ -1,4 +1,4 @@
-name: "Pip" # Source: https://github.com/pybind/scikit_build_example/blob/master/.github/workflows/pip.yml
+name: Pip # Source: https://github.com/pybind/scikit_build_example/blob/master/.github/workflows/pip.yml
 
 on:
   workflow_dispatch:

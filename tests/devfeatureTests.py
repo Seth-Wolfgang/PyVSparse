@@ -22,9 +22,9 @@ formats = ("csc",)
 # densities = (0.3, 0.4, 1.0)
 densities = (1.0,)
 # rows = (1, 2, 10, 100)
-rows = (2,)
+rows = (2, 100)
 # cols = (1, 2, 10, 100)
-cols = (2,)
+cols = (2, 100)
 epsilon = 1e-3
 
 cases = []
@@ -119,24 +119,6 @@ class Test:
     #         for y in range(result.shape[1]):
     #             assert epsilon > abs(result[x, y]), "half_vcsc: " + str(half_vcsc[x, y]) + " half_sp: " + str(half_sp[x, y]) + " Diff: " + str(abs(result[x, y]))
     
-
-    def testAppendCSC(self, SPMatrix):
-        VCSCMat2 = vcsc.VCSC(SPMatrix)
-        IVCSCMat2 = ivcsc.IVCSC(SPMatrix)   
-        
-        VCSCMat2.append(SPMatrix)
-        IVCSCMat2.append(SPMatrix)        
-
-        print(VCSCMat2)
-        print(IVCSCMat2)
-
-        VCSC2CSC = VCSCMat2.tocsc()
-        IVCSC2CSC = IVCSCMat2.tocsc()
-
-        print(IVCSC2CSC.todense())
-
-        result = (VCSC2CSC - IVCSC2CSC).toarray()
-        np.testing.assert_array_almost_equal(result, np.zeros((SPMatrix.shape[0], SPMatrix.shape[1])), decimal=3)
 
     # def testAppendWrongFormat(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
     #     with pytest.raises(TypeError):
