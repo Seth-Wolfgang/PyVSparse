@@ -296,10 +296,12 @@ class Test:
         np.testing.assert_array_almost_equal(result, np.zeros((result.shape[0], result.shape[1])), decimal=2, verbose=True)
     
     def testTrace(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        if rows != cols:
-            pytest.skip("Skipping trace test for non-square matrix")
-        assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
-        assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
+        if SPMatrix.shape[0] != SPMatrix.shape[1]:
+            with pytest.raises(ValueError):
+                VCSCMatrix.trace()
+        else:
+            assert epsilon > abs(VCSCMatrix.trace() -  IVCSCMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace())
+            assert epsilon > abs(VCSCMatrix.trace() - SPMatrix.trace()), "VCSCMatrix: " + str(VCSCMatrix.trace()) + " IVCSCMatrix: " + str(IVCSCMatrix.trace()) + " SPMatrix: " + str(SPMatrix.trace())
 
     
     def testAppendCSC_VCSC(self, SPMatrix):
