@@ -57,6 +57,11 @@ class VCSC:
 
 
     def fromVCSC(self, spmat: VCSC):
+
+        """
+        Copy constructor for VCSC
+        """
+
         self.wrappedForm = spmat.wrappedForm.copy()
         self.dtype = spmat.dtype
         self.indexT = spmat.indexT
@@ -93,10 +98,29 @@ class VCSC:
     #     else:
     #         raise StopIteration
         
-    def sum(self) -> int: # tested
+    def sum(self): # tested
+        """
+        Returns the sum of all elements in the matrix
+
+        Note: Sum is either int64 or a double
+        """
+
         return self.wrappedForm.sum()
 
     def trace(self): 
+        
+        """
+        Returns the sum of all elements along the diagonal. 
+
+        Throws ValueError if matrix is not square.
+        
+        Note: Sum is either int64 or a double.
+
+        """
+
+        if self.rows != self.cols:
+            raise ValueError("Cannot take trace of non-square matrix")
+        
         return self.wrappedForm.trace()
 
     def outerSum(self) -> list[int]: # TODO test
@@ -118,26 +142,61 @@ class VCSC:
         return self.wrappedForm.minRowCoeff()
 
     def byteSize(self) -> np.uint64: 
+        """
+        Returns the memory consumption of the matrix in bytes
+        """
+
         return self.wrappedForm.byteSize
     
     def norm(self) -> np.double: 
+        
+        """
+        Returns the Frobenius norm of the matrix
+        """
+        
         return self.wrappedForm.norm()
     
     def vectorLength(self, vector) -> np.double: # TODO test
+        
+        """
+        Returns the magnitude of the vector
+        """
+
         return self.wrappedForm.vectorLength(vector)
 
     def tocsc(self) -> sp.sparse.csc_matrix:
+
+        """
+        Converts the matrix to a scipy.sparse.csc_matrix
+
+        Note: This is a copy. This does not destroy the original matrix.
+        """
+
         if self.order == "Row":
             return self.wrappedForm.toEigen().tocsc()
         return self.wrappedForm.toEigen()
     
     def tocsr(self) -> sp.sparse.csr_matrix:
+
+        """
+        Converts the matrix to a scipy.sparse.csr_matrix
+
+        Note: This is a copy. This does not destroy the original matrix.
+        """
+
         if self.order == "Col":
             return self.tocsc().tocsr()
         else:
             return self.wrappedForm.toEigen()
 
     def transpose(self, inplace = True) -> VCSC:
+        
+        """
+        Transposes the matrix.
+
+        Note: This is a very slow operation. It is recommended to use the transpose() function from scipy.sparse.csc_matrix instead.
+        """
+        
         if inplace:
             self.wrappedForm = self.wrappedForm.transpose()
             self.rows, self.cols = self.cols, self.rows
@@ -165,10 +224,10 @@ class VCSC:
     
     def __mul__(self, other):
 
-        if(isinstance(other, np.ndarray)):
+        if(isinstance(other, np.ndarray)): # Dense numpy matrix or vector
             temp: np.ndarray = self.wrappedForm * other
             return temp
-        elif(isinstance(other, int) or isinstance(other, float)):
+        elif(isinstance(other, int) or isinstance(other, float)): # Scalar
             result = self
             result.wrappedForm = self.wrappedForm * other
             return result
@@ -182,6 +241,14 @@ class VCSC:
         return self.wrappedForm.__ne__(other)
     
     def getValues(self, outerIndex: int) -> list: 
+
+        """
+        Returns the unique values of a column or row
+        
+        Note: Whether the values are from a column or row depends on order of the matrix.
+              A matrix stored in column-major order will return the values of a column.
+        """
+
         if outerIndex < 0:
             outerIndex += int(self.outerSize)
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
@@ -190,6 +257,14 @@ class VCSC:
         return self.wrappedForm.getValues(outerIndex)
     
     def getIndices(self, outerIndex: int) -> list: 
+
+        """
+        Returns the indices of a column or row
+
+        Note: Whether the indices are from a column or row depends on order of the matrix.
+                A matrix stored in column-major order will return the indices of a column.
+        """
+
         if outerIndex < 0:
             outerIndex += int(self.outerSize)
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
@@ -197,7 +272,21 @@ class VCSC:
             raise IndexError(message)
         return self.wrappedForm.getIndices(outerIndex)
     
-    def getCounts(self, outerIndex: int) -> list: 
+    def getCounts(self, outerIndex: int) -> list:
+
+        """
+        Returns the number of non-zero elements in a column or row
+
+        For example, if the matrix is:
+            [1] 
+            [1]
+            [2]
+        Then the list [1, 2] will be returned
+
+        Note: Whether the counts are from a column or row depends on order of the matrix.
+                A matrix stored in column-major order will return the counts of a column.
+        """
+
         if outerIndex < 0:
             outerIndex += int(self.outerSize)
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
@@ -206,6 +295,14 @@ class VCSC:
         return self.wrappedForm.getCounts(outerIndex)
     
     def getNumIndices(self, outerIndex: int) -> list: 
+        
+        """
+        Returns the number of unique values in a column or row
+
+        Note: Whether the number of indices are from a column or row depends on order of the matrix.
+                A matrix stored in column-major order will return the number of indices of a column.
+        """
+        
         if outerIndex < 0:
             outerIndex += int(self.outerSize)
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
@@ -213,7 +310,16 @@ class VCSC:
             raise IndexError(message)
         return self.wrappedForm.getNumIndices(outerIndex)
     
-    def append(self, matrix) -> None: # TODO fix
+    def append(self, matrix) -> None: 
+
+        """
+        Appends a matrix to the current matrix
+
+        The appended matrix must be of the same type or a scipy.sparse.csc_matrix/csr_matrix 
+        depending on the storage order of the current matrix. For a column-major matrix,
+        the appended matrix will be appended to the end of the columns. For a row-major matrix,
+        the appended matrix will be appended to the end of the rows.
+        """
 
         if isinstance(matrix, VCSC) and self.order == matrix.order:
             self.wrappedForm.append(matrix.wrappedForm)
@@ -242,6 +348,14 @@ class VCSC:
 
 
     def slice(self, start, end) -> VCSC:  # TODO fix
+
+        """
+        Returns a slice of the matrix.
+
+        Currently, only slicing by storage order is supported. For example, if the matrix is stored in column-major order,
+        Then the returned matrix will be a slice of the columns.
+        """
+
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
         result.nnz = result.wrappedForm.nonZeros()

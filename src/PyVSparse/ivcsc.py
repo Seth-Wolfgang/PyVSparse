@@ -47,6 +47,11 @@ class IVCSC:
             raise TypeError("Input matrix does not have a valid format!")
         
     def fromIVCSC(self, ivcsc: IVCSC):
+
+        """
+        Copy constructor for IVCSC
+        """
+
         self.wrappedForm = ivcsc.wrappedForm.copy()
         self.dtype = ivcsc.dtype
         self.indexT = ivcsc.indexT
@@ -74,9 +79,28 @@ class IVCSC:
         return _copy
 
     def sum(self) -> int:
+
+        """
+        Returns the sum of all elements in the matrix
+
+        Note: Sum is either int64 or a double
+        """
+
         return self.wrappedForm.sum()
 
     def trace(self): 
+        """
+        Returns the sum of all elements along the diagonal. 
+
+        Throws ValueError if matrix is not square.
+        
+        Note: Sum is either int64 or a double.
+
+        """
+
+        if self.rows != self.cols:
+            raise ValueError("Cannot take trace of non-square matrix")
+        
         return self.wrappedForm.trace()
 
     def outerSum(self) -> list[int]: # TODO test
@@ -98,27 +122,66 @@ class IVCSC:
         return self.wrappedForm.minRowCoeff()
     
     def norm(self) -> np.double: 
+
+        """
+        Returns the Frobenius norm of the matrix
+        """
+
         return self.wrappedForm.norm()
     
     def byteSize(self) -> np.uint64: 
+        """
+        Returns the memory consumption of the matrix in bytes
+        """
+
         return self.wrappedForm.byteSize
     
     def vectorLength(self, vector) -> np.double: # TODO fix
+        """
+        Returns the magnitude of the vector
+        """
+
         return self.wrappedForm.vectorLength(vector)
 
     def tocsc(self) -> sp.sparse.csc_matrix:
+        """
+        Converts the matrix to a scipy.sparse.csc_matrix
+
+        Note: This is a copy. This does not destroy the original matrix.
+        """
         if self.order == "Row":
             return self.wrappedForm.toEigen().tocsc()
         return self.wrappedForm.toEigen()
     
     def tocsr(self) -> sp.sparse.csr_matrix:
+        """
+        Converts the matrix to a scipy.sparse.csr_matrix
+
+        Note: This is a copy. This does not destroy the original matrix.
+        """
         if self.order == "Col":
             return self.tocsc().tocsr()
         else:
             return self.wrappedForm.toEigen()
 
-    def transpose(self, inplace = True): # -> IVCSC:
-        return self.wrappedForm.transpose()
+    def transpose(self, inplace = True) -> IVCSC:
+        
+        """
+        Transposes the matrix.
+
+        Note: This is a very slow operation. It is recommended to use the transpose() function from scipy.sparse.csc_matrix instead.
+        """
+        
+        if inplace:
+            self.wrappedForm = self.wrappedForm.transpose()
+            self.rows, self.cols = self.cols, self.rows
+            self.innerSize, self.outerSize = self.outerSize, self.innerSize
+            return self
+        temp = self
+        temp.wrappedForm = self.wrappedForm.transpose()
+        temp.rows, temp.cols = self.cols, self.rows
+        temp.innerSize, temp.outerSize = self.outerSize, self.innerSize
+        return temp
 
     def shape(self) -> tuple[np.uint32, np.uint32]: 
         return (self.rows, self.cols)
@@ -150,16 +213,15 @@ class IVCSC:
     def __ne__(self, other) -> bool:
         return self.wrappedForm.__ne__(other)
 
-    # def __iter__(self):
-        # return self.wrappedForm.__iter__()
-    
-    def getValues(self) -> list[int]: # TODO test
-        return self.wrappedForm.getValues()
-    
-    def getIndices(self) -> list[int]: # TODO test
-        return self.wrappedForm.getIndices()
-    
-    def append(self, matrix) -> None: # TODO fix
+    def append(self, matrix) -> None: 
+        """
+        Appends a matrix to the current matrix
+
+        The appended matrix must be of the same type or a scipy.sparse.csc_matrix/csr_matrix 
+        depending on the storage order of the current matrix. For a column-major matrix,
+        the appended matrix will be appended to the end of the columns. For a row-major matrix,
+        the appended matrix will be appended to the end of the rows.
+        """
 
         if isinstance(matrix, IVCSC) and self.order == matrix.order:
             self.wrappedForm.append(matrix.wrappedForm)
@@ -187,6 +249,14 @@ class IVCSC:
 
 
     def slice(self, start, end) -> IVCSC: # TODO fix
+
+        """
+        Returns a slice of the matrix.
+
+        Currently, only slicing by storage order is supported. For example, if the matrix is stored in column-major order,
+        Then the returned matrix will be a slice of the columns.
+        """
+        
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
         result.nnz = result.wrappedForm.nonZeros()
