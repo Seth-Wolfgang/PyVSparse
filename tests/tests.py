@@ -2,8 +2,6 @@
 import random
 from PyVSparse import VCSC
 
-from matplotlib.pylab import f
-from sqlalchemy import true
 import PyVSparse.ivcsc as ivcsc
 import PyVSparse.vcsc as vcsc
 import scipy as sp
