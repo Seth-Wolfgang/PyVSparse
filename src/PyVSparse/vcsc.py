@@ -1,10 +1,8 @@
 from __future__ import annotations
-from typing import overload
 
 import scipy as sp
 import numpy as np
 
-from PyVSparse.ivcsc import IVCSC
 import PyVSparse 
 
 class VCSC:
@@ -16,7 +14,8 @@ class VCSC:
         self.order = order.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
         self.indexT = np.dtype(indexT) 
-    
+        self.format = "vcsc"
+
         if(isinstance(self.indexT, type(np.dtype(np.uint32)))):
             self.indexT = np.uint32
         elif(isinstance(self.indexT, type(np.dtype(np.uint64)))):
@@ -31,6 +30,13 @@ class VCSC:
         if self.order != "Col" and self.order != "Row":
             raise TypeError("major must be one of: 'Col', 'Row'")
 
+        self.rows: np.uint32 = np.uint32(0)
+        self.cols: np.uint32 = np.uint32(0)
+        self.nnz: np.uint64 = np.uint64(0)
+        self.innerSize: np.uint32 = np.uint32(0)
+        self.outerSize: np.uint32 = np.uint32(0)
+        self.bytes: np.uint64 = np.uint64(0)
+
         if(spmat.format == "csc"):
             self.order = "Col"
             moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
@@ -40,28 +46,42 @@ class VCSC:
             moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
             self._CSconstruct(moduleName, spmat)    
         elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._PyVSparse._VCSC." + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)    
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)    
             self._COOconstruct(moduleName, spmat)
         elif(isinstance(spmat, VCSC)): # TODO test
-            self = spmat
+            self.fromVCSC(spmat)
+        elif(isinstance(spmat, PyVSparse.IVCSC)): #TODO test
+            self.fromIVCSC(spmat)
+        else:
+            raise TypeError("Input matrix does not have a valid format!")
 
-    def fromPyVSparse(self, vcsc: VCSC):
-        self.wrappedForm = vcsc.wrappedForm
-        self.dtype = vcsc.dtype
-        self.indexT = vcsc.indexT
-        self.rows = vcsc.rows
-        self.cols = vcsc.cols
-        self.nnz = vcsc.nnz
-        self.inner = vcsc.inner
-        self.outer = vcsc.outer
-        self.bytes = vcsc.byteSize()
 
+    def fromVCSC(self, spmat: VCSC):
+        self.wrappedForm = spmat.wrappedForm.copy()
+        self.dtype = spmat.dtype
+        self.indexT = spmat.indexT
+        self.rows = spmat.rows
+        self.cols = spmat.cols
+        self.nnz = spmat.nnz
+        self.innerSize = spmat.innerSize
+        self.outerSize = spmat.outerSize
+        self.bytes = spmat.byteSize()
+
+    def fromIVCSC(self, spmat: PyVSparse.IVCSC):
+        raise NotImplementedError
     
     def __repr__(self):
         return self.wrappedForm.__repr__()
 
     def __str__(self) -> str:
         return self.wrappedForm.__str__()
+
+    def __deepcopy__(self): 
+        _copy = VCSC(self)
+        return _copy
+
+    def copy(self):
+        return VCSC(self)
 
     # def __iter__(self, outerIndex: int):
     #     self.iter = self.wrappedForm.__iter__(outerIndex)
@@ -76,7 +96,7 @@ class VCSC:
     def sum(self) -> int: # tested
         return self.wrappedForm.sum()
 
-    def trace(self) -> int: # TODO fix
+    def trace(self): 
         return self.wrappedForm.trace()
 
     def outerSum(self) -> list[int]: # TODO test
@@ -97,7 +117,7 @@ class VCSC:
     def minRowCoeff(self) -> list[int]: # TODO test
         return self.wrappedForm.minRowCoeff()
 
-    def byteSize(self) -> np.uint64: # TODO test
+    def byteSize(self) -> np.uint64: 
         return self.wrappedForm.byteSize
     
     def norm(self) -> np.double: 
@@ -121,17 +141,17 @@ class VCSC:
         if inplace:
             self.wrappedForm = self.wrappedForm.transpose()
             self.rows, self.cols = self.cols, self.rows
-            self.inner, self.outer = self.outer, self.inner
+            self.innerSize, self.outerSize = self.outerSize, self.innerSize
             return self
         temp = self
         temp.wrappedForm = self.wrappedForm.transpose()
         temp.rows, temp.cols = self.cols, self.rows
-        temp.inner, temp.outer = self.outer, self.inner
+        temp.innerSize, temp.outerSize = self.outerSize, self.innerSize
         return temp
         
     
 
-    def shape(self) -> tuple[np.uint32, np.uint32]: # TODO test
+    def shape(self) -> tuple[np.uint32, np.uint32]: 
         return (self.rows, self.cols)
     
     def __imul__(self, other: np.ndarray) -> VCSC: 
@@ -161,17 +181,37 @@ class VCSC:
     def __ne__(self, other) -> bool:
         return self.wrappedForm.__ne__(other)
     
-    def getValues(self) -> list[int]: # TODO test
-        return self.wrappedForm.getValues()
+    def getValues(self, outerIndex: int) -> list: 
+        if outerIndex < 0:
+            outerIndex += int(self.outerSize)
+        elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
+            message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
+            raise IndexError(message)
+        return self.wrappedForm.getValues(outerIndex)
     
-    def getIndices(self) -> list[int]: # TODO test
-        return self.wrappedForm.getIndices()
+    def getIndices(self, outerIndex: int) -> list: 
+        if outerIndex < 0:
+            outerIndex += int(self.outerSize)
+        elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
+            message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
+            raise IndexError(message)
+        return self.wrappedForm.getIndices(outerIndex)
     
-    def getCounts(self) -> list[int]: # TODO test
-        return self.wrappedForm.getCounts()
+    def getCounts(self, outerIndex: int) -> list: 
+        if outerIndex < 0:
+            outerIndex += int(self.outerSize)
+        elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
+            message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
+            raise IndexError(message)
+        return self.wrappedForm.getCounts(outerIndex)
     
-    def getNumIndices(self) -> list[int]: # TODO test
-        return self.wrappedForm.getNumIndices()
+    def getNumIndices(self, outerIndex: int) -> list: 
+        if outerIndex < 0:
+            outerIndex += int(self.outerSize)
+        elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
+            message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
+            raise IndexError(message)
+        return self.wrappedForm.getNumIndices(outerIndex)
     
     def append(self, matrix) -> None: # TODO fix
 
@@ -190,31 +230,31 @@ class VCSC:
         else:
             raise TypeError("Cannot append " + str(type(matrix)) + " to " + str(type(self)))
 
-        self.nnz += matrix.nnz
+        self.nnz += matrix.nnz # type: ignore
 
         if self.order == "Col":
-            self.inner += self.rows
-            self.outer += self.cols
+            self.innerSize += self.rows
+            self.outerSize += self.cols
         else:
-            self.inner += self.cols
-            self.outer += self.rows
+            self.innerSize += self.cols
+            self.outerSize += self.rows
 
 
 
     def slice(self, start, end) -> VCSC:  # TODO fix
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
-        result.nnz = result.wrappedForm.nnz
+        result.nnz = result.wrappedForm.nonZeros()
 
         if(self.order == "Col"):
-            result.inner = self.rows
-            result.outer = end - start
-            result.cols = result.outer
+            result.innerSize = self.rows
+            result.outerSize = end - start
+            result.cols = result.outerSize
             result.rows = self.rows
         else:
-            result.inner = self.cols
-            result.outer = end - start
-            result.rows = result.outer
+            result.innerSize = self.cols
+            result.outerSize = end - start
+            result.rows = result.outerSize
             result.cols = self.cols
 
         return result
@@ -224,23 +264,32 @@ class VCSC:
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
-        self.inner: np.uint32 = spmat.indices
-        self.outer: np.uint32 = spmat.indptr
-        # print("Constructing VCSC with moduleName: ", moduleName)
+
+        if(self.order == "Col"):
+            self.innerSize: np.uint32 = self.rows
+            self.outerSize: np.uint32 = self.cols
+        else:
+            self.innerSize: np.uint32 = self.cols
+            self.outerSize: np.uint32 = self.rows
+
         self.wrappedForm = eval(str(moduleName))(spmat)
         self.bytes: np.uint64 = self.wrappedForm.byteSize
 
-    def _COOconstruct(self, moduleName: str, spmat): # TODO test
+    def _COOconstruct(self, moduleName: str, spmat): 
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
         
         if(self.order == "Col"):
-            self.inner: np.uint32 = spmat.row
-            self.outer: np.uint32 = spmat.col
+            self.innerSize: np.uint32 = spmat.row
+            self.outerSize: np.uint32 = spmat.col
         else:
-            self.inner: np.uint32 = spmat.col
-            self.outer: np.uint32 = spmat.row
+            self.innerSize: np.uint32 = spmat.col
+            self.outerSize: np.uint32 = spmat.row
+        
+        coords = []
+        for r, c, v in zip(spmat.row, spmat.col, spmat.data):
+            coords.append((r, c, v))    
 
-        self.wrappedForm = eval(str(moduleName))((spmat.row, spmat.col, spmat.data), self.rows, self.cols, spmat.nnz)
+        self.wrappedForm = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
         self.bytes: np.uint64 = self.wrappedForm.byteSize

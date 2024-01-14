@@ -1,24 +1,31 @@
 from __future__ import annotations
-from typing import TypeVar
-from unittest import result
 
 import scipy as sp
 import numpy as np
+
 import PyVSparse
+
 
 class IVCSC:
     def __init__(self, spmat, order: str = "col"): # add scipySparseMat: scipyFormat as type hint
 
         self.order = order.lower().capitalize()
         self.dtype: np.dtype = spmat.dtype
+        self.format = "ivcsc"
+
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct IVCSC from empty matrix")
 
         if self.order != "Col" and self.order != "Row":
             raise TypeError("storage order must be one of: 'Col', 'Row'")
 
-        self.order = order.lower().capitalize()
-        self.dtype: np.dtype = spmat.dtype
+        self.rows: np.uint32 = np.uint32(0)
+        self.cols: np.uint32 = np.uint32(0)
+        self.nnz: np.uint32 = np.uint32(0)
+        self.innerSize: np.uint32 = np.uint32(0)
+        self.outerSize: np.uint32 = np.uint32(0)
+        self.bytes: np.uint64 = np.uint64(0)
+
         if(spmat.nnz == 0):
             raise ValueError("Cannot construct VCSC from empty matrix")
         if(spmat.format == "csc"):
@@ -33,18 +40,28 @@ class IVCSC:
             moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
             self._COOconstruct(moduleName, spmat)
         elif(isinstance(spmat, IVCSC)): # TODO test
-            self = spmat
-
-    def fromPyVSparse(self, ivcsc: IVCSC):
-        self.wrappedForm = ivcsc.wrappedForm
+            self.fromIVCSC(spmat)
+        elif(isinstance(spmat, PyVSparse.VCSC)): #TODO test
+            self.fromVCSC(spmat)
+        else:
+            raise TypeError("Input matrix does not have a valid format!")
+        
+    def fromIVCSC(self, ivcsc: IVCSC):
+        self.wrappedForm = ivcsc.wrappedForm.copy()
         self.dtype = ivcsc.dtype
         self.indexT = ivcsc.indexT
         self.rows = ivcsc.rows
         self.cols = ivcsc.cols
         self.nnz = ivcsc.nnz
-        self.inner = ivcsc.inner
-        self.outer = ivcsc.outer
+        self.innerSize = ivcsc.innerSize
+        self.outerSize = ivcsc.outerSize
         self.bytes = ivcsc.bytes
+
+    def fromVCSC(self, vcscMat: PyVSparse.VCSC):
+        raise NotImplementedError
+        
+    def copy(self):
+        return IVCSC(self)
 
     def __repr__(self) -> None:
         self.wrappedForm.print()
@@ -52,10 +69,14 @@ class IVCSC:
     def __str__(self) -> str:
         return self.wrappedForm.__str__()
 
+    def __deepcopy__(self, memo): # https://stackoverflow.com/a/46939443/12895299
+        _copy = self.copy()
+        return _copy
+
     def sum(self) -> int:
         return self.wrappedForm.sum()
 
-    def trace(self) -> int: # TODO fix
+    def trace(self): 
         return self.wrappedForm.trace()
 
     def outerSum(self) -> list[int]: # TODO test
@@ -76,10 +97,10 @@ class IVCSC:
     def minRowCoeff(self) -> list[int]: # TODO test
         return self.wrappedForm.minRowCoeff()
     
-    def norm(self) -> np.double: # TODO fix
+    def norm(self) -> np.double: 
         return self.wrappedForm.norm()
     
-    def byteSize(self) -> np.uint64: # TODO test
+    def byteSize(self) -> np.uint64: 
         return self.wrappedForm.byteSize
     
     def vectorLength(self, vector) -> np.double: # TODO fix
@@ -99,7 +120,7 @@ class IVCSC:
     def transpose(self, inplace = True): # -> IVCSC:
         return self.wrappedForm.transpose()
 
-    def shape(self) -> tuple[np.uint32, np.uint32]: # TODO test
+    def shape(self) -> tuple[np.uint32, np.uint32]: 
         return (self.rows, self.cols)
     
     def __imul__(self, other: np.ndarray) -> IVCSC:
@@ -155,29 +176,30 @@ class IVCSC:
         else:
             raise TypeError("Cannot append " + str(type(matrix)) + " to " + str(type(self)))
 
-        self.nnz += matrix.nnz
+        self.nnz += matrix.nnz # type: ignore
 
         if self.order == "Col":
-            self.inner += self.rows
-            self.outer += self.cols
+            self.innerSize += self.rows
+            self.outerSize += self.cols
         else:
-            self.inner += self.cols
-            self.outer += self.rows
+            self.innerSize += self.cols
+            self.outerSize += self.rows
 
 
     def slice(self, start, end) -> IVCSC: # TODO fix
         result = self
         result.wrappedForm = self.wrappedForm.slice(start, end)
-        
+        result.nnz = result.wrappedForm.nonZeros()
+
         if(self.order == "Col"):
-            result.inner = self.rows
-            result.outer = end - start
-            result.cols = result.outer
+            result.innerSize = self.rows
+            result.outerSize = end - start
+            result.cols = result.outerSize
             result.rows = self.rows
         else:
-            result.inner = self.cols
-            result.outer = end - start
-            result.rows = result.outer
+            result.innerSize = self.cols
+            result.outerSize = end - start
+            result.rows = result.outerSize
             result.cols = self.cols
 
         return result
@@ -189,26 +211,30 @@ class IVCSC:
         self.nnz = spmat.nnz
 
         if(self.order == "Col"):
-            self.inner: np.uint32 = spmat.indices
-            self.outer: np.uint32 = spmat.indptr
+            self.innerSize: np.uint32 = self.rows
+            self.outerSize: np.uint32 = self.cols
         else:
-            self.inner: np.uint32 = spmat.indptr
-            self.outer: np.uint32 = spmat.indices
+            self.innerSize: np.uint32 = self.cols
+            self.outerSize: np.uint32 = self.rows
         
         self.wrappedForm = eval(str(moduleName))(spmat)
         self.bytes: np.uint64 = self.wrappedForm.byteSize
 
-    def _COOconstruct(self, moduleName: str, spmat): # TODO test
+    def _COOconstruct(self, moduleName: str, spmat): 
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
         
         if(self.order == "Col"):
-            self.inner: np.uint32 = spmat.row
-            self.outer: np.uint32 = spmat.col
+            self.innerSize: np.uint32 = spmat.row
+            self.outerSize: np.uint32 = spmat.col
         else:
-            self.inner: np.uint32 = spmat.col
-            self.outer: np.uint32 = spmat.row
+            self.innerSize: np.uint32 = spmat.col
+            self.outerSize: np.uint32 = spmat.row
+        
+        coords = []
+        for r, c, v in zip(spmat.row, spmat.col, spmat.data):
+            coords.append((r, c, v))    
 
-        self.wrappedForm = eval(str(moduleName))((spmat.row, spmat.col, spmat.data), self.rows, self.cols, spmat.nnz)
+        self.wrappedForm = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
         self.bytes: np.uint64 = self.wrappedForm.byteSize

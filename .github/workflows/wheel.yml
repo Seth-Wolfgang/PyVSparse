@@ -4,8 +4,8 @@ on:
   workflow_run:
     workflows: [pip]
     types: [completed]
-      branches:
-        - main
+    branches:
+      - main
 
 jobs:
   upload_all_on_success:

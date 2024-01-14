@@ -74,79 +74,21 @@ class Test:
     def SPVector(self, SPMatrix):
         return np.ones((SPMatrix.shape[1], 1))  
 
+ 
 
-    @pytest.fixture
-    def csr_from_vcsc(self, VCSCMatrix):
-        if(VCSCMatrix.major == "col"):
-            pytest.skip("Skipping toCSR test for csc matrix")
-        return VCSCMatrix.toCSR()
 
-    @pytest.fixture
-    def csr_from_ivcsc(self, IVCSCMatrix):   
-        if(IVCSCMatrix.major == "col"):
-            pytest.skip("Skipping toCSR test for csc matrix")
-        return IVCSCMatrix.toCSR()
+    def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] / 2 == 0:
+            pytest.skip("Skipping slice test for would be 0 col matrix")
 
-    @pytest.fixture
-    def csc_from_vcsc(self, VCSCMatrix):
-        if(VCSCMatrix.major == "row"):
-            pytest.skip("Skipping toCSC test for csr matrix")
-        return VCSCMatrix.toCSC()
-
-    @pytest.fixture
-    def csc_from_ivcsc(self, IVCSCMatrix):
-        if(IVCSCMatrix.major == "row"):
-            pytest.skip("Skipping toCSC test for csr matrix")
-        return IVCSCMatrix.toCSC()    
-    
-
-    # def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-    #     if SPMatrix.shape[1] / 2 == 0:
-    #         pytest.skip("Skipping slice test for would be 0 col matrix")
-
-    #     half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
-    #     half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
-    #     assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
-    #     assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
-    #     # assert half_vcsc.sum() - SPMatrix[].sum(), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " SPMatrix: " + str(SPMatrix[0, 2].sum())
+        half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
+        half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
+        assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
+        assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
         
-    #     half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
-    #     assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
-    #     assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
+        half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
+        assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
+        assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
 
-    #     result = half_vcsc.tocsc() - half_sp
-    #     for x in range(result.shape[0]):
-    #         for y in range(result.shape[1]):
-    #             assert epsilon > abs(result[x, y]), "half_vcsc: " + str(half_vcsc[x, y]) + " half_sp: " + str(half_sp[x, y]) + " Diff: " + str(abs(result[x, y]))
-    
-
-    # def testAppendWrongFormat(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-    #     with pytest.raises(TypeError):
-    #         VCSCMatrix.append(IVCSCMatrix)
-    #     with pytest.raises(TypeError):
-    #         IVCSCMatrix.append(VCSCMatrix)
-
-  # def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-    #     if SPMatrix.shape[1] / 2 == 0:
-    #         pytest.skip("Skipping slice test for would be 0 col matrix")
-
-    #     half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
-    #     half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
-    #     assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
-    #     assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
-    #     # assert half_vcsc.sum() - SPMatrix[].sum(), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " SPMatrix: " + str(SPMatrix[0, 2].sum())
-        
-    #     half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
-    #     assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
-    #     assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
-
-    #     result = half_vcsc.tocsc() - half_sp
-    #     for x in range(result.shape[0]):
-    #         for y in range(result.shape[1]):
-    #             assert epsilon > abs(result[x, y]), "half_vcsc: " + str(half_vcsc[x, y]) + " half_sp: " + str(half_sp[x, y]) + " Diff: " + str(abs(result[x, y]))
-
-
-    # def testVectorLength(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-    #     for x in range(SPMatrix.shape(1)):
-    #         assert epsilon > abs(VCSCMatrix.vectorLength(x) - IVCSCMatrix.vectorLength(x)), "VCSCMatrix: " + str(VCSCMatrix.vectorLength(x)) + " IVCSCMatrix: " + str(IVCSCMatrix.vectorLength(x))
-    #         # assert VCSCMatrix.vectorLength(x) == SPMatrix.getcol(x).sum(), "VCSCMatrix: " + str(VCSCMatrix.vectorLength(x)) + " IVCSCMatrix: " + str(IVCSCMatrix.vectorLength(x)) + " SPMatrix: " + str(SPMatrix.getrow(x).sum())
+        result = (half_vcsc.tocsc() - half_sp).toarray()
+        np.testing.assert_array_almost_equal(result, np.zeros((half_sp.shape[0], half_sp.shape[1])), decimal=3, verbose=True)

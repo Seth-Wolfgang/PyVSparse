@@ -41,6 +41,9 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("cols", &IVSparse::IVCSC<T, isColMajor>::cols, py::return_value_policy::copy);
     mat.def("innerSize", &IVSparse::IVCSC<T, isColMajor>::innerSize, py::return_value_policy::copy);
     mat.def("outerSize", &IVSparse::IVCSC<T, isColMajor>::outerSize, py::return_value_policy::copy);
+    mat.def("shape", [](IVSparse::IVCSC<T, isColMajor>& self) {
+        return std::make_tuple(self.rows(), self.cols());
+            }, py::return_value_policy::copy);
     mat.def("nonZeros", &IVSparse::IVCSC<T, isColMajor>::nonZeros, py::return_value_policy::copy);
     mat.def("byteSize", &IVSparse::IVCSC<T, isColMajor>::byteSize, py::return_value_policy::copy);
     mat.def("write", &IVSparse::IVCSC<T, isColMajor>::write, py::arg("filename"));
@@ -64,8 +67,8 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, IVSparse::IVCSC<T, isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
     mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, Eigen::SparseMatrix<T, !isColMajor> other) {self.append(other); });
     mat.def("slice", &IVSparse::IVCSC<T, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::copy, py::keep_alive<1, 2>());
-    mat.def("vectorPointer", &IVSparse::IVCSC<T, isColMajor>::vectorPointer, py::return_value_policy::reference);
-    mat.def("getVectorByteSize", &IVSparse::IVCSC<T, isColMajor>::getVectorByteSize, py::return_value_policy::copy);
+    // mat.def("vectorPointer", &IVSparse::IVCSC<T, isColMajor>::vectorPointer, py::return_value_policy::reference);
+    // mat.def("getVectorByteSize", &IVSparse::IVCSC<T, isColMajor>::getVectorByteSize, py::return_value_policy::copy);
 }
 
 template <typename T, bool isColMajor>
@@ -95,10 +98,13 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
             }, py::is_operator(), py::return_value_policy::move);
     mat.def("__copy__", [](const IVSparse::IVCSC<T, isColMajor>& self) {
         return IVSparse::IVCSC<T, isColMajor>(self);
-            });
-    mat.def("__deepcopy__", [](const IVSparse::IVCSC<T, isColMajor>& self, py::dict) {                  //TODO: NEED TO CHECK;
+            }, py::return_value_policy::copy);
+    mat.def("__deepcopy__", [](const IVSparse::IVCSC<T, isColMajor>& self) {                  //TODO: NEED TO CHECK;
         return IVSparse::IVCSC<T, isColMajor>(self);
-            });
+            }, py::return_value_policy::copy);
+    mat.def("copy", [](const IVSparse::IVCSC<T, isColMajor>& self) {
+        return IVSparse::IVCSC<T, isColMajor>(self);
+            }, py::return_value_policy::copy);
     mat.def("__eq__", [](const IVSparse::IVCSC<T, isColMajor>& self, const IVSparse::IVCSC<T, isColMajor>& other) {
         return self == other;
             }, py::is_operator());
