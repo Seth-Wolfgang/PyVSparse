@@ -1,5 +1,7 @@
 
+from curses.ascii import SP
 import random
+from unittest import result
 
 from matplotlib.pylab import f
 from netaddr import P
@@ -13,18 +15,18 @@ import pytest
 #TODO Make this do real unit testing
 #TODO work on commented out tests
 #TODO implement COO constructor testing
-types = ( np.int32,)# np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16 , np.float32, np.float64)
+types = ( np.int32, )# np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16 , np.float32, np.float64)
 
-indexTypes = (np.uint8, np.uint16, np.uint32, np.uint64)
+indexTypes = (np.uint8,)# np.uint16, np.uint32, np.uint64)
 # formats = ("csc", "csr")
 formats = ("csc",)
 # formats = ("csr",)
 # densities = (0.3, 0.4, 1.0)
 densities = (1.0,)
 # rows = (1, 2, 10, 100)
-rows = (2, 100)
+rows = (5, 30, 100)
 # cols = (1, 2, 10, 100)
-cols = (2, 100)
+cols = (5, 15, 100)
 epsilon = 1e-3
 
 cases = []
@@ -74,21 +76,77 @@ class Test:
     def SPVector(self, SPMatrix):
         return np.ones((SPMatrix.shape[1], 1))  
 
- 
+
+    def testMinColVCSC(self, SPMatrix, VCSCMatrix): 
+        vcsc_min = VCSCMatrix.min(axis=0)
+
+        # https://stackoverflow.com/a/49389908/12895299
+        SPArray = SPMatrix.toarray()
 
 
-    def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
-        if SPMatrix.shape[1] / 2 == 0:
-            pytest.skip("Skipping slice test for would be 0 col matrix")
+        # np.testing.assert_almost_equal(vcsc_min, minval, decimal=3)
 
-        half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
-        half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
-        assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
-        assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
+    def testMinColIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_min = IVCSCMatrix.min(axis=0)
+
+        # https://stackoverflow.com/a/49389908/12895299
+        SPArray = SPMatrix.toarray()
+        minval = np.min(np.where(SPArray==0, SPArray.max(), SPArray), axis=0)
+
+        # turn it into a 2d array 
+        minval = np.reshape(minval, (1, SPMatrix.shape[1]))
+
+        # The code above removes zeros that SHOULD be there (zero vector in matrix)
+        # This code adds them back in
+        for x in range(len(ivcsc_min)):
+            if ivcsc_min[0, x] == 0:
+                minval[0, x] = 0
+
+        result = ivcsc_min - minval
+
+        assert np.allclose(result, 0, atol=epsilon)
+
+        # np.testing.assert_almost_equal(ivcsc_min, minval, decimal=3)
+    
+    def testMinRowVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_min = VCSCMatrix.min(axis=1)
         
-        half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
-        assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
-        assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
+        # https://stackoverflow.com/a/49389908/12895299
+        SPArray = SPMatrix.toarray()
+        minval = np.min(np.where(SPArray==0, SPArray.max(), SPArray), axis=1)
 
-        result = (half_vcsc.tocsc() - half_sp).toarray()
-        np.testing.assert_array_almost_equal(result, np.zeros((half_sp.shape[0], half_sp.shape[1])), decimal=3, verbose=True)
+        # turn it into a 2d array 
+        minval = np.reshape(minval, (SPMatrix.shape[0], 1))
+
+        # The code above removes zeros that SHOULD be there (zero vector in matrix)
+        # This code adds them back in
+        for x in range(len(vcsc_min)):
+            if vcsc_min[x, 0] == 0:
+                minval[x, 0] = 0
+
+        result = vcsc_min - minval
+
+        assert np.allclose(result, 0, atol=epsilon)
+
+        # np.testing.assert_almost_equal(vcsc_min, minval, decimal=3)
+
+    def testMinRowIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_min = IVCSCMatrix.min(axis=1)
+        # https://stackoverflow.com/a/49389908/12895299
+        SPArray = SPMatrix.toarray()
+        minval = np.min(np.where(SPArray==0, SPArray.max(), SPArray), axis=1)
+
+        # turn it into a 2d array 
+        minval = np.reshape(minval, (SPMatrix.shape[0], 1))
+
+        # The code above removes zeros that SHOULD be there (zero vector in matrix)
+        # This code adds them back in
+        for x in range(len(ivcsc_min)):
+            if ivcsc_min[x, 0] == 0:
+                minval[x, 0] = 0
+
+        result = ivcsc_min - minval
+
+        assert np.allclose(result, 0, atol=epsilon)
+
+        np.testing.assert_almost_equal(ivcsc_min, minval, decimal=3)

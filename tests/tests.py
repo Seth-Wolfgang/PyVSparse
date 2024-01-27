@@ -474,7 +474,7 @@ class Test:
             assert forward == backward
     
     
-    def test_VCSC_to_VCSC_Constructor(self, VCSCMatrix):
+    def test_VCSC_to_CSC_Constructor(self, VCSCMatrix):
         VCSCMatrix2 = vcsc.VCSC(VCSCMatrix)
         assert epsilon > abs(VCSCMatrix.sum() - VCSCMatrix2.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " VCSCMatrix2: " + str(VCSCMatrix2.sum())
         assert VCSCMatrix.shape() == VCSCMatrix2.shape(), "VCSCMatrix: " + str(VCSCMatrix.shape()) + " VCSCMatrix2: " + str(VCSCMatrix2.shape())
@@ -485,7 +485,7 @@ class Test:
         result = (CSC_Copy - CSC2_Copy).toarray()
         np.testing.assert_array_almost_equal(result, np.zeros((VCSCMatrix.shape()[0], VCSCMatrix.shape()[1])), decimal=2, verbose=True)
 
-    def test_IVCSC_to_IVCSC_Constructor(self, IVCSCMatrix):
+    def test_IVCSC_to_CSC_Constructor(self, IVCSCMatrix):
         IVCSCMatrix2 = ivcsc.IVCSC(IVCSCMatrix)
         assert epsilon > abs(IVCSCMatrix.sum() - IVCSCMatrix2.sum()), "IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " IVCSCMatrix2: " + str(IVCSCMatrix2.sum())
         assert IVCSCMatrix.shape() == IVCSCMatrix2.shape(), "IVCSCMatrix: " + str(IVCSCMatrix.shape()) + " IVCSCMatrix2: " + str(IVCSCMatrix2.shape())
@@ -519,3 +519,85 @@ class Test:
 
         result = (CSC_Copy - CSC2_Copy).toarray()
         np.testing.assert_array_almost_equal(result, np.zeros((IVCSCMatrix.shape()[0], IVCSCMatrix.shape()[1])), decimal=2, verbose=True)
+
+    def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] / 2 == 0:
+            pytest.skip("Skipping slice test for would be 0 col matrix")
+
+        half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
+        half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
+        assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
+        assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
+        
+        half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
+        assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
+        assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
+
+        result = (half_vcsc.tocsc() - half_sp).toarray()
+        np.testing.assert_array_almost_equal(result, np.zeros((half_sp.shape[0], half_sp.shape[1])), decimal=3, verbose=True)
+
+    def testOuterSumVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_sum = VCSCMatrix.sum(axis=0)
+        sp_sum = SPMatrix.sum(axis=0, dtype=VCSCMatrix.dtype)
+        np.testing.assert_almost_equal(vcsc_sum, sp_sum, decimal=3)
+
+    def testOuterSumIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_sum = IVCSCMatrix.sum(axis=0)
+        sp_sum = SPMatrix.sum(axis=0,dtype=IVCSCMatrix.dtype)
+        np.testing.assert_almost_equal(ivcsc_sum, sp_sum, decimal=3)
+
+    def testInnerSumVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_sum = VCSCMatrix.sum(axis=1)
+        sp_sum = SPMatrix.sum(axis=1,dtype=VCSCMatrix.dtype)
+
+        np.testing.assert_almost_equal(vcsc_sum, sp_sum, decimal=3)
+    
+    def testInnerSumIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_sum = IVCSCMatrix.sum(axis=1)
+        sp_sum = SPMatrix.sum(axis=1,dtype=IVCSCMatrix.dtype)
+
+        np.testing.assert_almost_equal(ivcsc_sum, sp_sum, decimal=3)
+
+    def testMaxColVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_max = VCSCMatrix.max(axis=0)
+        sp_max = SPMatrix.max(axis=0).toarray()
+        np.testing.assert_almost_equal(vcsc_max, sp_max, decimal=3)
+
+    def testMaxColIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_max = IVCSCMatrix.max(axis=0)
+        sp_max = SPMatrix.max(axis=0).toarray()
+        np.testing.assert_almost_equal(ivcsc_max, sp_max, decimal=3)
+
+    def testMaxValVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_max = VCSCMatrix.max()
+        sp_max = SPMatrix.max()
+        np.testing.assert_almost_equal(vcsc_max, sp_max, decimal=3)
+
+    def testMaxValIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_max = IVCSCMatrix.max()
+        sp_max = SPMatrix.max()
+        np.testing.assert_almost_equal(ivcsc_max, sp_max, decimal=3)
+
+    def testMaxRowVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_max = VCSCMatrix.max(axis=1)
+        sp_max = SPMatrix.max(axis=1).toarray()
+        np.testing.assert_almost_equal(vcsc_max, sp_max, decimal=3)
+
+    def testMaxRowIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_max = IVCSCMatrix.max(axis=1)
+        sp_max = SPMatrix.max(axis=1).toarray()
+        np.testing.assert_almost_equal(ivcsc_max, sp_max, decimal=3)
+
+    def testMinValVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_min = VCSCMatrix.min()
+        sp_min = SPMatrix.min()
+
+        np.testing.assert_almost_equal(vcsc_min, sp_min, decimal=3)
+
+    def testMinValIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_min = IVCSCMatrix.min()
+        sp_min = SPMatrix.min()
+
+        np.testing.assert_almost_equal(ivcsc_min, sp_min, decimal=3)
+
+        

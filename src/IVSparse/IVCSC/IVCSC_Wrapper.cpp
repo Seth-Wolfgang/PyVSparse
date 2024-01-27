@@ -51,16 +51,81 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
     mat.def("coeff", &IVSparse::IVCSC<T, isColMajor>::coeff, py::return_value_policy::copy, "Sets value at run of coefficient", py::arg("row").none(false), py::arg("col").none(false));
     mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
-    mat.def("outerSum", &IVSparse::IVCSC<T, isColMajor>::outerSum, py::return_value_policy::copy);
-    mat.def("innerSum", &IVSparse::IVCSC<T, isColMajor>::innerSum, py::return_value_policy::copy);
-    mat.def("maxColCoeff", &IVSparse::IVCSC<T, isColMajor>::maxColCoeff, py::return_value_policy::copy);
-    mat.def("maxRowCoeff", &IVSparse::IVCSC<T, isColMajor>::maxRowCoeff, py::return_value_policy::copy);
-    mat.def("minRowCoeff", &IVSparse::IVCSC<T, isColMajor>::minRowCoeff, py::return_value_policy::copy);
-    mat.def("minColCoeff", &IVSparse::IVCSC<T, isColMajor>::minColCoeff, py::return_value_policy::copy);
+    // mat.def("outerSum", [](IVSparse::IVCSC<T, isColMajor>& self){
+
+    //     Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = Eigen::Matrix<T, -1, -1>::Zero(self.outerSize(), 1);   
+    //     Eigen::Map<Eigen::Matrix<T, -1, -1, Eigen::RowMajor>> eigenMap(eigenTemp.data(), eigenTemp.rows(), eigenTemp.cols());
+
+    //     memcpy(eigenMap.data(), self.outerSum().data(), self.outerSize() * sizeof(T));
+
+    //     eigenTemp.transposeInPlace();
+    //     return eigenTemp;
+    //         }, py::return_value_policy::move);
+
+    // mat.def("innerSum", &IVSparse::IVCSC<T, isColMajor>::innerSum, py::return_value_policy::copy);
+    // mat.def("innerSum", [](IVSparse::IVCSC<T, isColMajor>& self){
+
+    //     Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = Eigen::Matrix<T, -1, -1>::Zero(self.innerSize(), 1);   
+    //     Eigen::Map<Eigen::Matrix<T, -1, -1, Eigen::RowMajor>> eigenMap(eigenTemp.data(), eigenTemp.rows(), eigenTemp.cols());
+
+    //     memcpy(eigenMap.data(), self.innerSum().data(), self.innerSize() * sizeof(T));
+
+    //     eigenTemp.transposeInPlace();
+    //     return eigenTemp;
+    //         }, py::return_value_policy::move);
+
+    // mat.def("maxColCoeff", &IVSparse::IVCSC<T, isColMajor>::maxColCoeff, py::return_value_policy::copy);
+    // mat.def("maxRowCoeff", &IVSparse::IVCSC<T, isColMajor>::maxRowCoeff, py::return_value_policy::copy);
+    // mat.def("minRowCoeff", &IVSparse::IVCSC<T, isColMajor>::minRowCoeff, py::return_value_policy::copy);
+    // mat.def("minColCoeff", &IVSparse::IVCSC<T, isColMajor>::minColCoeff, py::return_value_policy::copy);
+    mat.def("colSum", [](IVSparse::IVCSC<T, isColMajor>& self) {
+
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.colSum().transpose();
+
+        return eigenTemp;
+            }, py::return_value_policy::move);
+
+    // mat.def("innerSum", &IVSparse::IVCSC<T, isColMajor>::innerSum, py::return_value_policy::copy);
+    mat.def("rowSum", [](IVSparse::IVCSC<T, isColMajor>& self) {
+
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.rowSum();
+        return eigenTemp;
+
+            }, py::return_value_policy::move);
+
+    mat.def("max", [](IVSparse::IVCSC<T, isColMajor>& self, int axis) {
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.max(axis);
+
+        return eigenTemp;
+
+            }, py::arg("axis"), py::return_value_policy::move);
+
+
+    mat.def("min", [](IVSparse::IVCSC<T, isColMajor>& self, int axis) {
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.min(axis);
+
+        return eigenTemp;
+
+            }, py::arg("axis"), py::return_value_policy::move);
+
+    mat.def("max", [](IVSparse::IVCSC<T, isColMajor>& self) {
+        return self.max();
+
+            }, py::return_value_policy::move);
+
+    mat.def("min", [](IVSparse::IVCSC<T, isColMajor>& self) {
+        return self.min();;
+
+            }, py::return_value_policy::move);
+
+
+
+
+
     mat.def("trace", [](IVSparse::IVCSC<T, isColMajor>& self) { return self.trace(); }, py::return_value_policy::copy);
     mat.def("sum", [](IVSparse::IVCSC<T, isColMajor>& self) { return self.sum(); }, py::return_value_policy::copy);
     mat.def("norm", &IVSparse::IVCSC<T, isColMajor>::norm, py::return_value_policy::copy);
-    mat.def("vectorLength", &IVSparse::IVCSC<T, isColMajor>::vectorLength, py::return_value_policy::copy);
+    // mat.def("vectorLength", &IVSparse::IVCSC<T, isColMajor>::vectorLength, py::return_value_policy::copy);
     mat.def("toEigen", &IVSparse::IVCSC<T, isColMajor>::toEigen, py::return_value_policy::copy);
     mat.def("transpose", &IVSparse::IVCSC<T, isColMajor>::transpose, py::return_value_policy::copy);
     mat.def("inPlaceTranspose", &IVSparse::IVCSC<T, isColMajor>::inPlaceTranspose);

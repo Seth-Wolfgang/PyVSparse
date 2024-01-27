@@ -27,3 +27,26 @@ constexpr const char* returnTypeName() {
         return "unknown";
     }
 }
+
+template <typename T>
+Eigen::Matrix<T, -1, -1, Eigen::RowMajor> arrToEigen(T* vec, int rows, int cols, int axis) {
+
+
+    if (axis==0) { // columns 
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = Eigen::Matrix<T, -1, 1>::Zero(cols, 1);
+        Eigen::Map<Eigen::Matrix<T, -1, -1, Eigen::RowMajor>> eigenMap(eigenTemp.data(), cols, 1);
+
+        memcpy(eigenMap.data(), vec, cols * sizeof(T));
+        eigenTemp.transposeInPlace();
+        return eigenTemp;
+    }
+    else { // rows
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = Eigen::Matrix<T, -1, 1>::Zero(rows, 1);
+        Eigen::Map<Eigen::Matrix<T, -1, -1, Eigen::RowMajor>> eigenMap(eigenTemp.data(), rows, 1);
+
+        memcpy(eigenMap.data(), vec, rows * sizeof(T));
+        
+        return eigenTemp;
+    }
+
+}

@@ -7,3 +7,4 @@ PyVSparse.egg-info
 .vscode/
 .pytest_cache/
 .venv/
+*.out

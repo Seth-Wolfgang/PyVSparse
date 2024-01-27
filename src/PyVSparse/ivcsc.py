@@ -78,15 +78,24 @@ class IVCSC:
         _copy = self.copy()
         return _copy
 
-    def sum(self) -> int:
+    def sum(self, axis=None):
 
         """
-        Returns the sum of all elements in the matrix
+        On axis=None, returns the sum of all elements in the matrix
+
+        If axis=0, returns the sum of each column
+
+        If axis=1, returns the sum of each row
 
         Note: Sum is either int64 or a double
         """
-
-        return self.wrappedForm.sum()
+        if axis is None:
+            return self.wrappedForm.sum()
+        if axis == 0:
+            return self.wrappedForm.colSum()
+        if axis == 1:
+            return self.wrappedForm.rowSum()
+        
 
     def trace(self): 
         """
@@ -103,23 +112,43 @@ class IVCSC:
         
         return self.wrappedForm.trace()
 
-    def outerSum(self) -> list[int]: # TODO test
-        return self.wrappedForm.outerSum()
+    
+    def max(self, axis=None):
+            
+        """
+        On axis=None, returns the maximum of all elements in the matrix
 
-    def innerSum(self) -> list[int]: # TODO test
-        return self.wrappedForm.innerSum()
-    
-    def maxColCoeff(self) -> list[int]: # TODO test
-        return self.wrappedForm.maxColCoeff()
-    
-    def maxRowCoeff(self) -> list[int]: # TODO test
-        return self.wrappedForm.maxRowCoeff()
+        If axis=0, returns the maximum of each column
 
-    def minColCoeff(self) -> list[int]: # TODO test
-        return self.wrappedForm.minColCoeff()
+        If axis=1, returns the maximum of each row
+
+        """
+        if axis is None:
+            return self.wrappedForm.max()
+        else:
+            return self.wrappedForm.max(axis)
     
-    def minRowCoeff(self) -> list[int]: # TODO test
-        return self.wrappedForm.minRowCoeff()
+    def min(self, axis=None):
+                
+        """
+        On axis=None, returns the minimum of all *nonzero* elements in the matrix 
+
+        If axis=0, returns the *nonzero* minimum of each column
+
+        If axis=1, returns the *nonzero*  minimum of each row
+
+        Note: because of the way the matrix is stored, 
+              minimums that are zero are very expensive to compute.
+              
+              There are a few exceptions: 
+              - If a row/column is all zeros, then the minimum will be zero.
+              - if axis=None, then the minimum will be zero if nnz < rows * cols
+
+        """
+        if axis is None:
+            return self.wrappedForm.min()
+        else:
+            return self.wrappedForm.min(axis)
     
     def norm(self) -> np.double: 
 
