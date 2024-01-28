@@ -150,3 +150,4 @@ class Test:
         assert np.allclose(result, 0, atol=epsilon)
 
         np.testing.assert_almost_equal(ivcsc_min, minval, decimal=3)
+

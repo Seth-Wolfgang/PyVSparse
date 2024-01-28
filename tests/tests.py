@@ -533,8 +533,7 @@ class Test:
         assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
         assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
 
-        result = (half_vcsc.tocsc() - half_sp).toarray()
-        np.testing.assert_array_almost_equal(result, np.zeros((half_sp.shape[0], half_sp.shape[1])), decimal=3, verbose=True)
+        np.testing.assert_array_almost_equal(half_sp.toarray(), half_vcsc.tocsc().toarray(), decimal=3, verbose=True)
 
     def testOuterSumVCSC(self, SPMatrix, VCSCMatrix):
         vcsc_sum = VCSCMatrix.sum(axis=0)
