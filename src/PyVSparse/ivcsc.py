@@ -150,7 +150,7 @@ class IVCSC:
         else:
             return self.wrappedForm.min(axis)
     
-    def norm(self) -> np.double: 
+    def norm(self) -> np.double: # todo: make this not just Froebenius norm
 
         """
         Returns the Frobenius norm of the matrix
@@ -165,13 +165,6 @@ class IVCSC:
 
         return self.wrappedForm.byteSize
     
-    def vectorLength(self, vector) -> np.double: # TODO fix
-        """
-        Returns the magnitude of the vector
-        """
-
-        return self.wrappedForm.vectorLength(vector)
-
     def tocsc(self) -> sp.sparse.csc_matrix:
         """
         Converts the matrix to a scipy.sparse.csc_matrix
@@ -277,7 +270,7 @@ class IVCSC:
             self.outerSize += self.rows
 
 
-    def slice(self, start, end) -> IVCSC: # TODO fix
+    def slice(self, start, end) -> IVCSC: 
 
         """
         Returns a slice of the matrix.

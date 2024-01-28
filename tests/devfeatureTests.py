@@ -151,3 +151,19 @@ class Test:
 
         np.testing.assert_almost_equal(ivcsc_min, minval, decimal=3)
 
+
+
+    def testSlice(self, SPMatrix, VCSCMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] / 2 == 0:
+            pytest.skip("Skipping slice test for would be 0 col matrix")
+
+        half_vcsc = VCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2)) 
+        half_ivcsc = IVCSCMatrix.slice(0, (int)(SPMatrix.shape[1] / 2))
+        assert epsilon > abs(half_ivcsc.sum() - half_vcsc.sum()), "half_vcsc: " + str(half_vcsc.sum()) + " half_ivcsc: " + str(half_ivcsc.sum()) + " Diff: " + str(abs(half_ivcsc.sum() - half_vcsc.sum()))
+        assert half_vcsc.shape() == half_ivcsc.shape(), "half_vcsc: " + str(half_vcsc.shape()) + " half_ivcsc: " + str(half_ivcsc.shape())
+        
+        half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] / 2)]
+        assert epsilon > abs(half_sp.sum() - half_vcsc.sum()), "half_sp: " + str(half_sp.sum()) + " half_vcsc: " + str(half_vcsc.sum()) + " Diff: " + str(abs(half_sp.sum() - half_vcsc.sum()))
+        assert half_sp.shape == half_vcsc.shape(), "half_sp: " + str(half_sp.shape) + " half_vcsc: " + str(half_vcsc.shape())
+
+        np.testing.assert_array_almost_equal(half_sp.toarray(), half_vcsc.tocsc().toarray(), decimal=3, verbose=True)
