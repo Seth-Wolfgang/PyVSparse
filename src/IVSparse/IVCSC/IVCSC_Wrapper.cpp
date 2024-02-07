@@ -80,7 +80,7 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     // mat.def("minColCoeff", &IVSparse::IVCSC<T, isColMajor>::minColCoeff, py::return_value_policy::copy);
     mat.def("colSum", [](IVSparse::IVCSC<T, isColMajor>& self) {
 
-        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.colSum().transpose();
+        Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.colSum();
 
         return eigenTemp;
             }, py::return_value_policy::move);
@@ -131,7 +131,13 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("inPlaceTranspose", &IVSparse::IVCSC<T, isColMajor>::inPlaceTranspose);
     mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, IVSparse::IVCSC<T, isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
     mat.def("append", [](IVSparse::IVCSC<T, isColMajor>& self, Eigen::SparseMatrix<T, !isColMajor> other) {self.append(other); });
-    mat.def("slice", &IVSparse::IVCSC<T, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::copy, py::keep_alive<1, 2>());
+    // mat.def("slice", &IVSparse::IVCSC<T, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::copy, py::keep_alive<1, 2>());
+
+    mat.def("slice", [](IVSparse::IVCSC<T, isColMajor>& self, size_t start, size_t end) {
+        IVSparse::IVCSC<T, isColMajor> temp = self.slice(start, end);
+        return temp;
+
+            }, py::arg("start"), py::arg("end"), py::return_value_policy::copy, py::keep_alive<1, 2>());
     // mat.def("vectorPointer", &IVSparse::IVCSC<T, isColMajor>::vectorPointer, py::return_value_policy::reference);
     // mat.def("getVectorByteSize", &IVSparse::IVCSC<T, isColMajor>::getVectorByteSize, py::return_value_policy::copy);
 }

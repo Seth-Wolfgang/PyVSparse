@@ -266,7 +266,13 @@ void declareVCSCFuncs(py::module& m, py::class_<IVSparse::VCSC<T, indexT, isColM
     mat.def("inPlaceTranspose", &IVSparse::VCSC<T, indexT, isColMajor>::inPlaceTranspose);
     mat.def("append", [](IVSparse::VCSC<T, indexT, isColMajor>& self, IVSparse::VCSC<T, indexT, isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
     mat.def("append", [](IVSparse::VCSC<T, indexT, isColMajor>& self, Eigen::SparseMatrix<T, !isColMajor>& other) {self.append(other); }, py::arg("other"), py::keep_alive<1, 2>());
-    mat.def("slice", &IVSparse::VCSC<T, indexT, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::move);
+    // mat.def("slice", &IVSparse::VCSC<T, indexT, isColMajor>::slice, py::arg("startCol"), py::arg("endCol"), py::return_value_policy::move);
+
+    mat.def("slice", [](IVSparse::VCSC<T, indexT, isColMajor>& self, size_t start, size_t end) {
+        IVSparse::VCSC<T, indexT, isColMajor> temp = self.slice(start, end);
+        return temp;
+
+            }, py::arg("start"), py::arg("end"), py::return_value_policy::copy, py::keep_alive<1, 2>());
     mat.def("getNumUniqueVals", &IVSparse::VCSC<T, indexT, isColMajor>::getNumUniqueVals, py::arg("col"), py::return_value_policy::copy);
     // mat.def("getValues", &IVSparse::VCSC<T, indexT, isColMajor>::getValues, py::arg("col"), py::return_value_policy::copy);
     mat.def("getValues", [](IVSparse::VCSC<T, indexT, isColMajor>& self, indexT col) {

@@ -207,7 +207,6 @@ class Test:
         VCSCMatrix *= 2
         SPMatrix *= 2
 
-        assert epsilon > abs(VCSCMatrix.sum() - SPMatrix.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " IVCSCMatrix: " + str(VCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
         if(SPMatrix.format == "csr"):
             IVCSC_check = VCSCMatrix.tocsr()
         else:
@@ -221,8 +220,6 @@ class Test:
         VCSCresult = VCSCMatrix * 2
         SPresult = SPMatrix * 2
         
-        assert epsilon > abs(VCSCresult.sum() - SPresult.sum())
-        assert VCSCresult.shape() == SPresult.shape
         if(SPMatrix.format == "csr"):
             IVCSC_check = VCSCresult.tocsr()
         else:
@@ -236,9 +233,6 @@ class Test:
     def testIPScalarMultiplyIVCSC(self, SPMatrix, IVCSCMatrix):
         IVCSCMatrix *= 2
         SPMatrix *= 2
-
-        assert epsilon > abs(IVCSCMatrix.sum() - SPMatrix.sum()), " IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " SPMatrix: " + str(SPMatrix.sum())
-        assert IVCSCMatrix.shape() == SPMatrix.shape, " IVCSCMatrix: " + str(IVCSCMatrix.shape) + " SPMatrix: " + str(SPMatrix.shape)
         
         if(SPMatrix.format == "csr"):
             IVCSC_check = IVCSCMatrix.tocsr()
@@ -253,8 +247,6 @@ class Test:
         IVCSCresult = IVCSCMatrix * 2
         SPresult = SPMatrix * 2
 
-        assert epsilon > abs(IVCSCresult.sum() - SPresult.sum()), "IVCSCresult: " + str(IVCSCresult.sum()) + " SPresult: " + str(SPresult.sum())
-        assert IVCSCresult.shape() == SPresult.shape, "IVCSCresult: " + str(IVCSCresult.shape) + " SPresult: " + str(SPresult.shape)
         if(SPMatrix.format == "csr"):
             IVCSC_check = IVCSCresult.tocsr()
         else:
@@ -520,16 +512,6 @@ class Test:
         result = (CSC_Copy - CSC2_Copy).toarray()
         np.testing.assert_array_almost_equal(result, np.zeros((IVCSCMatrix.shape()[0], IVCSCMatrix.shape()[1])), decimal=2, verbose=True)
 
-    def testOuterSumVCSC(self, SPMatrix, VCSCMatrix):
-        vcsc_sum = VCSCMatrix.sum(axis=0)
-        sp_sum = SPMatrix.sum(axis=0, dtype=VCSCMatrix.dtype)
-        np.testing.assert_almost_equal(vcsc_sum, sp_sum, decimal=3)
-
-    def testOuterSumIVCSC(self, SPMatrix, IVCSCMatrix):
-        ivcsc_sum = IVCSCMatrix.sum(axis=0)
-        sp_sum = SPMatrix.sum(axis=0,dtype=IVCSCMatrix.dtype)
-        np.testing.assert_almost_equal(ivcsc_sum, sp_sum, decimal=3)
-
     def testInnerSumVCSC(self, SPMatrix, VCSCMatrix):
         vcsc_sum = VCSCMatrix.sum(axis=1)
         sp_sum = SPMatrix.sum(axis=1,dtype=VCSCMatrix.dtype)
@@ -584,4 +566,14 @@ class Test:
 
         np.testing.assert_almost_equal(ivcsc_min, sp_min, decimal=3)
 
-        
+    def testOuterSumVCSC(self, SPMatrix, VCSCMatrix):
+        vcsc_sum = VCSCMatrix.sum(axis=0)
+        sp_sum = SPMatrix.sum(axis=0, dtype=VCSCMatrix.dtype)
+        np.testing.assert_almost_equal(vcsc_sum, sp_sum, decimal=3)
+
+    def testOuterSumIVCSC(self, SPMatrix, IVCSCMatrix):
+        ivcsc_sum = IVCSCMatrix.sum(axis=0)
+        sp_sum = SPMatrix.sum(axis=0,dtype=IVCSCMatrix.dtype)
+        np.testing.assert_almost_equal(ivcsc_sum, sp_sum, decimal=3)
+
+
