@@ -15,7 +15,7 @@ import pytest
 #TODO implement COO constructor testing
 types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ( )
 # types = (np.int32,)
-indexTypes = (np.uint32,) # ( np.uint64, np.uint8, np.uint16, )
+indexTypes = (np.uint32, np.uint64, np.uint8, np.uint16, )
 formats = ("csc", "csr")
 # formats = ("csc",)
 densities = (0.3, 0.4, 1.0)
@@ -643,3 +643,35 @@ class Test:
         resultCSC = ivcsc2.tocsc()
 
         np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
+
+    def testConstrctVCSCFromVCSC(self, VCSCMatrix):
+        vcsc2 = vcsc.VCSC(VCSCMatrix)
+        assert epsilon > abs(VCSCMatrix.sum() - vcsc2.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " vcsc2: " + str(vcsc2.sum())
+        assert VCSCMatrix.shape() == vcsc2.shape(), "VCSCMatrix: " + str(VCSCMatrix.shape()) + " vcsc2: " + str(vcsc2.shape())
+
+        CSC_Copy = VCSCMatrix.tocsc()
+        CSC2_Copy = vcsc2.tocsc()
+
+        result = (CSC_Copy - CSC2_Copy).toarray()
+        np.testing.assert_array_almost_equal(result, np.zeros((VCSCMatrix.shape()[0], VCSCMatrix.shape()[1])), decimal=2, verbose=True)
+
+    def testConstrctIVCSCFromIVCSC(self, IVCSCMatrix):
+        ivcsc2 = ivcsc.IVCSC(IVCSCMatrix)
+        assert epsilon > abs(IVCSCMatrix.sum() - ivcsc2.sum()), "IVCSCMatrix: " + str(IVCSCMatrix.sum()) + " ivcsc2: " + str(ivcsc2.sum())
+        assert IVCSCMatrix.shape() == ivcsc2.shape(), "IVCSCMatrix: " + str(IVCSCMatrix.shape()) + " ivcsc2: " + str(ivcsc2.shape())
+
+        CSC_Copy = IVCSCMatrix.tocsc()
+        CSC2_Copy = ivcsc2.tocsc()
+
+        result = (CSC_Copy - CSC2_Copy).toarray()
+        np.testing.assert_array_almost_equal(result, np.zeros((IVCSCMatrix.shape()[0], IVCSCMatrix.shape()[1])), decimal=2, verbose=True)
+
+    def testRandomAccessVCSC(self, SPMatrix, VCSCMatrix):
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert VCSCMatrix[x, y] == SPMatrix[x, y]
+
+    def testRandomAccessIVCSC(self, SPMatrix, IVCSCMatrix):
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert IVCSCMatrix[x, y] == SPMatrix[x, y]

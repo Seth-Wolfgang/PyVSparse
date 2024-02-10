@@ -19,7 +19,7 @@ import pytest
 #TODO implement COO constructor testing
 types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16 , np.float32, np.float64)
 
-indexTypes = (np.uint8,)# np.uint16, np.uint32, np.uint64)
+indexTypes = (np.uint8, np.uint16, np.uint32, np.uint64)
 formats = ("csc", "csr")
 # formats = ("csc",)
 # formats = ("csr",)
@@ -67,7 +67,7 @@ class Test:
     @pytest.fixture(params=indexTypes)
     def VCSCMatrix(self, SPMatrix, request):
         # print(request.param)
-        return vcsc.VCSC(SPMatrix)
+        return vcsc.VCSC(SPMatrix, indexType=request.param)
 
     @pytest.fixture
     def IVCSCMatrix(self, SPMatrix):
@@ -77,6 +77,15 @@ class Test:
     # @pytest.mark.parametrize('densities', densities)
     def SPVector(self, SPMatrix):
         return np.ones((SPMatrix.shape[1], 1))  
+
+
+    def testRandomAccessVCSC(self, SPMatrix, VCSCMatrix):
+
+        for x in range(SPMatrix.shape[0]):
+            for y in range(SPMatrix.shape[1]):
+                assert VCSCMatrix[x, y] == SPMatrix[x, y]
+        
+
 
 
 
