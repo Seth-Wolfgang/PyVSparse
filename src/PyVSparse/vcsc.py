@@ -516,52 +516,36 @@ class VCSC:
         isFloating = bool(valueByte[1])
         isSigned = bool(valueByte[2])
         isColumnMajor = bool(valueByte[3])
-
         if isFloating:
-            match typeSize:
-                case 4:
-                    self.dtype = np.dtype(np.float32)
-                case 8:
-                    self.dtype = np.dtype(np.float64)
-                case _:
-                    raise ValueError("Invalid floating point flag byte in VCSC file" + filename + ". Value: " + str(valueByte))
+            if typeSize == 4:
+                self.dtype = np.dtype(np.float32)
+            elif typeSize == 8:
+                self.dtype = np.dtype(np.float64)
+            else:
+                raise ValueError(f"Invalid floating point flag byte in VCSC file: {filename}. Value: {valueByte}")
         else:
-            match typeSize:
-                case 1:
-                    if isSigned:
-                        self.dtype = np.dtype(np.int8)
-                    else:
-                        self.dtype = np.dtype(np.uint8)
-                case 2:
-                    if isSigned:
-                        self.dtype = np.dtype(np.int16)
-                    else:
-                        self.dtype = np.dtype(np.uint16)
-                case 4:
-                    if isSigned:
-                        self.dtype = np.dtype(np.int32)
-                    else:
-                        self.dtype = np.dtype(np.uint32)
-                case 8:
-                    if isSigned:
-                        self.dtype = np.dtype(np.int64)
-                    else:
-                        self.dtype = np.dtype(np.uint64)
-                case _:
-                    raise ValueError("Invalid type size in VCSC file: " + filename + ". Value: " + str(typeSize))
-        
-        match indexSize:
-            case 1:
-                self.indexT = np.uint8
-            case 2:
-                self.indexT = np.uint16
-            case 4:
-                self.indexT = np.uint32
-            case 8:
-                self.indexT = np.uint64
-            case _:
-                raise ValueError("Invalid index size")
+            if typeSize == 1:
+                self.dtype = np.dtype(np.int8) if isSigned else np.dtype(np.uint8)
+            elif typeSize == 2:
+                self.dtype = np.dtype(np.int16) if isSigned else np.dtype(np.uint16)
+            elif typeSize == 4:
+                self.dtype = np.dtype(np.int32) if isSigned else np.dtype(np.uint32)
+            elif typeSize == 8:
+                self.dtype = np.dtype(np.int64) if isSigned else np.dtype(np.uint64)
+            else:
+                raise ValueError(f"Invalid type size in VCSC file: {filename}. Value: {typeSize}")
 
+        if indexSize == 1:
+            self.indexT = np.uint8
+        elif indexSize == 2:
+            self.indexT = np.uint16
+        elif indexSize == 4:
+            self.indexT = np.uint32
+        elif indexSize == 8:
+            self.indexT = np.uint64
+        else:
+            raise ValueError("Invalid index size")
+        
         if isColumnMajor:
             self.order = "Col"
         else:
