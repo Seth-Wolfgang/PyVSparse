@@ -51,7 +51,6 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("print", &IVSparse::IVCSC<T, isColMajor>::print);
     mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
     mat.def("coeff", &IVSparse::IVCSC<T, isColMajor>::coeff, py::return_value_policy::copy, "Sets value at run of coefficient", py::arg("row").none(false), py::arg("col").none(false));
-    mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
     
     mat.def("dtype", [](IVSparse::IVCSC<T, isColMajor>& self) {
         return returnTypeName<T>();
