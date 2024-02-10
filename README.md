@@ -144,7 +144,7 @@ IVCSC:
 
 ## Todo
 
-1. Finish wrapper (little needs to be done)
+1. Finish wrapper
 2. Comments
 3. Documentation
 4. Fix dynamic index size for VCSC

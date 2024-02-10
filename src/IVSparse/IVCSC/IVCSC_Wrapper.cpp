@@ -29,7 +29,7 @@ py::class_<IVSparse::IVCSC<T, isColMajor>> declareIVCSC(py::module& m) {
     mat.def(py::init<T*, size_t*, size_t*, uint32_t, uint32_t, uint32_t>());
     mat.def(py::init<std::vector<std::tuple<size_t, size_t, T>>&, uint32_t, uint32_t, uint32_t>());
     mat.def(py::init<std::unordered_map<T, std::vector<size_t>>*, uint32_t, uint32_t>()); //<std::unordered_map<T, std::vector<size_t>>[], uint32_t, uint32_t> ;
-    mat.def(py::init<const char*>());
+    mat.def(py::init<char*>());
     mat.def(py::init<>());
 
     return mat;
@@ -47,10 +47,17 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("nonZeros", &IVSparse::IVCSC<T, isColMajor>::nonZeros, py::return_value_policy::copy);
     mat.def("byteSize", &IVSparse::IVCSC<T, isColMajor>::byteSize, py::return_value_policy::copy);
     mat.def("write", &IVSparse::IVCSC<T, isColMajor>::write, py::arg("filename"));
+    mat.def("read", &IVSparse::IVCSC<T, isColMajor>::read, py::arg("filename"));
     mat.def("print", &IVSparse::IVCSC<T, isColMajor>::print);
     mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
     mat.def("coeff", &IVSparse::IVCSC<T, isColMajor>::coeff, py::return_value_policy::copy, "Sets value at run of coefficient", py::arg("row").none(false), py::arg("col").none(false));
     mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
+    
+    mat.def("dtype", [](IVSparse::IVCSC<T, isColMajor>& self) {
+        return returnTypeName<T>();
+            }, py::return_value_policy::copy);
+
+    
     // mat.def("outerSum", [](IVSparse::IVCSC<T, isColMajor>& self){
 
     //     Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = Eigen::Matrix<T, -1, -1>::Zero(self.outerSize(), 1);   

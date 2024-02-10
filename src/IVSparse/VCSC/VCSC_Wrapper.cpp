@@ -54,7 +54,7 @@ py::class_<IVSparse::VCSC<T, indexT, isColMajor>> declareVCSC(py::module& m) {
     mat.def(py::init<T*, indexT*, indexT*, uint32_t, uint32_t, uint32_t>());
     mat.def(py::init<std::vector<std::tuple<indexT, indexT, T>>&, uint32_t, uint32_t, uint32_t>());
     mat.def(py::init<std::unordered_map<T, std::vector<indexT>>*, uint32_t, uint32_t>()); //<std::unordered_map<T, std::vector<indexT>>[], uint32_t, uint32_t> ;
-    mat.def(py::init<const char*>());
+    mat.def(py::init<char*>());
     mat.def(py::init<>());
 
     return mat;
@@ -206,6 +206,7 @@ void declareVCSCFuncs(py::module& m, py::class_<IVSparse::VCSC<T, indexT, isColM
     mat.def("nonZeros", &IVSparse::VCSC<T, indexT, isColMajor>::nonZeros, py::return_value_policy::copy);
     mat.def("byteSize", &IVSparse::VCSC<T, indexT, isColMajor>::byteSize, py::return_value_policy::copy);
     mat.def("write", &IVSparse::VCSC<T, indexT, isColMajor>::write, py::arg("filename"));
+    mat.def("read", &IVSparse::VCSC<T, indexT, isColMajor>::read, py::arg("filename"));
     mat.def("print", &IVSparse::VCSC<T, indexT, isColMajor>::print);
     mat.def("coeff", &IVSparse::VCSC<T, indexT, isColMajor>::coeff, py::return_value_policy::copy, "Sets value at run of coefficient", py::arg("row").none(false), py::arg("col").none(false));
     mat.def("isColumnMajor", &IVSparse::VCSC<T, indexT, isColMajor>::isColumnMajor, py::return_value_policy::copy);
@@ -242,7 +243,7 @@ void declareVCSCFuncs(py::module& m, py::class_<IVSparse::VCSC<T, indexT, isColM
 
             }, py::arg("axis"), py::return_value_policy::move);
 
-    mat.def("max", [](IVSparse::VCSC<T, indexT, isColMajor>& self) { 
+    mat.def("max", [](IVSparse::VCSC<T, indexT, isColMajor>& self) {
         return self.max();
 
             }, py::return_value_policy::move);
@@ -294,4 +295,12 @@ void declareVCSCFuncs(py::module& m, py::class_<IVSparse::VCSC<T, indexT, isColM
         memcpy(indices.data(), self.getIndices(col), self.getNumIndices(col) * sizeof(indexT));
         return indices;
             }, py::arg("col"), py::return_value_policy::copy);
+
+    mat.def("dtype", [](IVSparse::VCSC<T, indexT, isColMajor>& self) {
+        return returnTypeName<T>();
+            }, py::return_value_policy::copy);
+
+    mat.def("indexType", [](IVSparse::VCSC<T, indexT, isColMajor>& self) {
+        return returnTypeName<indexT>();
+            }, py::return_value_policy::copy);
 }

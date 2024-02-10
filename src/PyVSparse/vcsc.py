@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import overload
 
 import scipy as sp
 import numpy as np
@@ -7,12 +8,9 @@ import PyVSparse
 
 class VCSC:
 
-    def __init__(self, spmat, order: str = "col", indexT: np.dtype = np.dtype(np.uint32)):
-        if(spmat.nnz == 0):
-            raise ValueError("Cannot construct VCSC from empty matrix")
+    def __init__(self, spmat, indexT: np.dtype = np.dtype(np.uint32), order: str = "col"):
 
         self.order = order.lower().capitalize()
-        self.dtype: np.dtype = spmat.dtype
         self.indexT = np.dtype(indexT) 
         self.format = "vcsc"
 
@@ -36,24 +34,34 @@ class VCSC:
         self.innerSize: np.uint32 = np.uint32(0)
         self.outerSize: np.uint32 = np.uint32(0)
         self.bytes: np.uint64 = np.uint64(0)
+        self.dtype: np.dtype = np.dtype(None)
+        
 
-        if(spmat.format == "csc"):
-            self.order = "Col"
-            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
-            self._CSconstruct(moduleName, spmat)
-        elif(spmat.format == "csr"):
-            self.order = "Row"
-            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
-            self._CSconstruct(moduleName, spmat)    
-        elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)    
-            self._COOconstruct(moduleName, spmat)
-        elif(isinstance(spmat, VCSC)): # TODO test
-            self.fromVCSC(spmat)
-        elif(isinstance(spmat, PyVSparse.IVCSC)): #TODO test
-            self.fromIVCSC(spmat)
+        # If the input is a scipy.sparse matrix or IVSparse matrix
+        if not isinstance(spmat, str):
+            self.dtype: np.dtype = spmat.dtype
+            
+            if(spmat.format == "csc"):
+                self.order = "Col"
+                moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
+                self._CSconstruct(moduleName, spmat)
+            elif(spmat.format == "csr"):
+                self.order = "Row"
+                moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)
+                self._CSconstruct(moduleName, spmat)    
+            elif(spmat.format == "coo"):
+                moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)    
+                self._COOconstruct(moduleName, spmat)
+            elif(isinstance(spmat, VCSC)): # TODO test
+                self.fromVCSC(spmat)
+            elif(isinstance(spmat, PyVSparse.IVCSC)): #TODO test
+                self.fromIVCSC(spmat)
+            else:
+                raise TypeError("Input matrix does not have a valid format!")
+        elif isinstance(spmat, str):
+            self.read(spmat)
         else:
-            raise TypeError("Input matrix does not have a valid format!")
+            raise TypeError("Input must be a filename or a scipy.sparse matrix")
 
 
     def fromVCSC(self, spmat: VCSC):
@@ -402,6 +410,52 @@ class VCSC:
             result.cols = self.cols
 
         return result
+    
+    def write(self, filename: str) -> None: 
+
+        """
+        Writes the matrix to a file. VCSC does not have a file
+        extension, so the user does not need to specify a extension.
+        """
+
+        self.wrappedForm.write(filename)
+
+    # def read(self, filename: str, dtype=None, indexT=None, order=None):
+
+    #     """
+    #     This reads a VCSC formatted matrix from a file. 
+
+    #     The user can specify the dtype, indexT, and order of the matrix.
+    #     Each one MUST be specified or the function will default to 
+    #     assuming the matrix is the same type as the current matrix AND 
+    #     initialized.
+
+    #     If the matrix is not initialized, then the function will throw an error.
+    #     """
+
+    #     if self.wrappedForm is None and (dtype is None or order is None or indexT is None):
+    #         raise ValueError("Template data must be specified for an uninitialized matrix.")
+    #     elif dtype is None or order is None or indexT is None:
+    #         try:
+    #             self.wrappedForm = self.wrappedForm.read(filename)
+    #         except:
+    #             raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from VCSC.write().")
+    #     else:
+    #         try:
+    #             self.wrappedForm = eval("PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order))(filename)
+    #         except:
+    #             raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from VCSC.write().")
+            
+    #         self.dtype = dtype
+    #         self.order = order
+    #         self.indexT = indexT
+
+    #     self.rows = self.wrappedForm.rows
+    #     self.cols = self.wrappedForm.cols
+    #     self.nnz = self.wrappedForm.nonZeros()
+    #     self.innerSize = self.wrappedForm.innerSize
+    #     self.outerSize = self.wrappedForm.outerSize
+    #     self.bytes = self.wrappedForm.byteSize
 
     def _CSconstruct(self, moduleName: str, spmat):
         self.indexT = type(spmat.indices[0])
@@ -437,3 +491,92 @@ class VCSC:
 
         self.wrappedForm = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
         self.bytes: np.uint64 = self.wrappedForm.byteSize
+
+    def read(self, filename: str):
+
+        """
+        Private helper function to read a VCSC formatted matrix from a file.
+        This function should automatically determine the template type of the matrix.
+        """
+
+        assert filename[-5:] == ".vcsc", "File must have a .vcsc extension"
+
+        try:
+            matFile = open(filename, "rb")
+        except:
+            raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from VCSC.write().")
+
+        matFile.seek(16)
+        valueByte = matFile.read(4)
+        matFile.seek(20)
+        indexSize = int(matFile.read(1)[0])
+        matFile.close()
+
+        typeSize = int(valueByte[0])
+        isFloating = bool(valueByte[1])
+        isSigned = bool(valueByte[2])
+        isColumnMajor = bool(valueByte[3])
+
+        if isFloating:
+            match typeSize:
+                case 4:
+                    self.dtype = np.dtype(np.float32)
+                case 8:
+                    self.dtype = np.dtype(np.float64)
+                case _:
+                    raise ValueError("Invalid floating point flag byte in VCSC file" + filename + ". Value: " + str(valueByte))
+        else:
+            match typeSize:
+                case 1:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int8)
+                    else:
+                        self.dtype = np.dtype(np.uint8)
+                case 2:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int16)
+                    else:
+                        self.dtype = np.dtype(np.uint16)
+                case 4:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int32)
+                    else:
+                        self.dtype = np.dtype(np.uint32)
+                case 8:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int64)
+                    else:
+                        self.dtype = np.dtype(np.uint64)
+                case _:
+                    raise ValueError("Invalid type size in VCSC file: " + filename + ". Value: " + str(typeSize))
+        
+        match indexSize:
+            case 1:
+                self.indexT = np.uint8
+            case 2:
+                self.indexT = np.uint16
+            case 4:
+                self.indexT = np.uint32
+            case 8:
+                self.indexT = np.uint64
+            case _:
+                raise ValueError("Invalid index size")
+
+        if isColumnMajor:
+            self.order = "Col"
+        else:
+            self.order = "Row"
+
+        self.wrappedForm = eval(str("PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexT)) + "_" + str(self.order)))(filename)
+        # try:
+        # self.wrappedForm.read(filename)
+        # except:
+            # raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from VCSC.write().")
+
+        self.rows = self.wrappedForm.rows
+        self.cols = self.wrappedForm.cols
+        self.nnz = self.wrappedForm.nonZeros()
+        self.innerSize = self.wrappedForm.innerSize
+        self.outerSize = self.wrappedForm.outerSize
+        self.bytes = self.wrappedForm.byteSize
+

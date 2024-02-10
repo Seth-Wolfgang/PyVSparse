@@ -1,6 +1,8 @@
 
 from curses.ascii import SP
+import os
 import random
+import sys
 from unittest import result
 
 from matplotlib.pylab import f
@@ -15,11 +17,11 @@ import pytest
 #TODO Make this do real unit testing
 #TODO work on commented out tests
 #TODO implement COO constructor testing
-types = ( np.int32, )# np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16 , np.float32, np.float64)
+types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16 , np.float32, np.float64)
 
 indexTypes = (np.uint8,)# np.uint16, np.uint32, np.uint64)
-# formats = ("csc", "csr")
-formats = ("csc",)
+formats = ("csc", "csr")
+# formats = ("csc",)
 # formats = ("csr",)
 # densities = (0.3, 0.4, 1.0)
 densities = (1.0,)
@@ -77,7 +79,31 @@ class Test:
         return np.ones((SPMatrix.shape[1], 1))  
 
 
-    # def testMinColVCSC(self, SPMatrix, VCSCMatrix): 
+
+
+    # def testSlice(self, SPMatrix, VCSCMatrix):
+    #     if SPMatrix.shape[1] // 2 == 0:
+    #         pytest.skip("Skipping slice test for would be 0 col matrix")
+
+    #     half_vcsc = VCSCMatrix.slice(0, SPMatrix.shape[1] // 2)
+    #     half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] // 2)]
+
+    #     result = half_vcsc.tocsc()
+
+    #     np.testing.assert_array_almost_equal(result.toarray(), half_sp.toarray(), decimal=3, verbose=True)
+
+    # def testSliceIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     if SPMatrix.shape[1] / 2 == 0:
+    #         pytest.skip("Skipping slice test for would be 0 col matrix")
+ 
+    #     half_ivcsc = IVCSCMatrix.slice(0, SPMatrix.shape[1] // 2)
+    #     half_sp = SPMatrix[:, 0: SPMatrix.shape[1] // 2]
+
+    #     result = half_ivcsc.tocsc()
+
+    #     np.testing.assert_array_almost_equal(result.toarray(), half_sp.toarray(), decimal=3, verbose=True)
+
+   # def testMinColVCSC(self, SPMatrix, VCSCMatrix): 
     #     vcsc_min = VCSCMatrix.min(axis=0)
 
     #     # https://stackoverflow.com/a/49389908/12895299
@@ -150,30 +176,4 @@ class Test:
     #     assert np.allclose(result, 0, atol=epsilon)
 
     #     np.testing.assert_almost_equal(ivcsc_min, minval, decimal=3)
-
-
-
-    def testSlice(self, SPMatrix, VCSCMatrix):
-        if SPMatrix.shape[1] // 2 == 0:
-            pytest.skip("Skipping slice test for would be 0 col matrix")
-
-        half_vcsc = VCSCMatrix.slice(0, SPMatrix.shape[1] // 2)
-        half_sp = SPMatrix[:, 0:(int)(SPMatrix.shape[1] // 2)]
-
-        result = half_vcsc.tocsc()
-
-        np.testing.assert_array_almost_equal(result.toarray(), half_sp.toarray(), decimal=3, verbose=True)
-
-
-
-    def testSliceIVCSC(self, SPMatrix, IVCSCMatrix):
-        if SPMatrix.shape[1] / 2 == 0:
-            pytest.skip("Skipping slice test for would be 0 col matrix")
- 
-        half_ivcsc = IVCSCMatrix.slice(0, SPMatrix.shape[1] // 2)
-        half_sp = SPMatrix[:, 0: SPMatrix.shape[1] // 2]
-
-        result = half_ivcsc.tocsc()
-
-        np.testing.assert_array_almost_equal(result.toarray(), half_sp.toarray(), decimal=3, verbose=True)
 

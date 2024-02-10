@@ -10,14 +10,7 @@ class IVCSC:
     def __init__(self, spmat, order: str = "col"): # add scipySparseMat: scipyFormat as type hint
 
         self.order = order.lower().capitalize()
-        self.dtype: np.dtype = spmat.dtype
         self.format = "ivcsc"
-
-        if(spmat.nnz == 0):
-            raise ValueError("Cannot construct IVCSC from empty matrix")
-
-        if self.order != "Col" and self.order != "Row":
-            raise TypeError("storage order must be one of: 'Col', 'Row'")
 
         self.rows: np.uint32 = np.uint32(0)
         self.cols: np.uint32 = np.uint32(0)
@@ -25,26 +18,37 @@ class IVCSC:
         self.innerSize: np.uint32 = np.uint32(0)
         self.outerSize: np.uint32 = np.uint32(0)
         self.bytes: np.uint64 = np.uint64(0)
+        self.dtype: np.dtype = np.dtype(None)
+        
 
-        if(spmat.nnz == 0):
-            raise ValueError("Cannot construct VCSC from empty matrix")
-        if(spmat.format == "csc"):
-            self.order = "Col"
-            moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
-            self._CSconstruct(moduleName, spmat)
-        elif(spmat.format == "csr"):
-            self.order = "Row"
-            moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
-            self._CSconstruct(moduleName, spmat)    
-        elif(spmat.format == "coo"):
-            moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
-            self._COOconstruct(moduleName, spmat)
-        elif(isinstance(spmat, IVCSC)): # TODO test
-            self.fromIVCSC(spmat)
-        elif(isinstance(spmat, PyVSparse.VCSC)): #TODO test
-            self.fromVCSC(spmat)
+        if self.order != "Col" and self.order != "Row":
+            raise TypeError("storage order must be one of: 'Col', 'Row'")
+
+        # If the input is a scipy.sparse matrix or IVSparse matrix
+        if not isinstance(spmat, str):
+            self.dtype: np.dtype = spmat.dtype
+
+            if(spmat.format == "csc"):
+                self.order = "Col"
+                moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
+                self._CSconstruct(moduleName, spmat)
+            elif(spmat.format == "csr"):
+                self.order = "Row"
+                moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
+                self._CSconstruct(moduleName, spmat)    
+            elif(spmat.format == "coo"):
+                moduleName = "PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)
+                self._COOconstruct(moduleName, spmat)
+            elif(isinstance(spmat, IVCSC)): # TODO test
+                self.fromIVCSC(spmat)
+            elif(isinstance(spmat, PyVSparse.VCSC)): #TODO test
+                self.fromVCSC(spmat)
+            else:
+                raise TypeError("Input matrix does not have a valid format!")
+        elif isinstance(spmat, str):
+            self.read(spmat)
         else:
-            raise TypeError("Input matrix does not have a valid format!")
+            raise TypeError("Input matrix must be a string or a scipy.sparse matrix")
         
     def fromIVCSC(self, ivcsc: IVCSC):
 
@@ -295,6 +299,51 @@ class IVCSC:
             result.cols = self.cols
 
         return result
+    
+    def write(self, filename: str) -> None: 
+
+        """
+        Writes the matrix to a file. IVCSC does not have a file
+        extension, so the user does not need to specify a extension.
+        """
+
+        self.wrappedForm.write(filename)
+
+  
+
+    # def read(self, filename: str, dtype=None, order=None):
+
+    #     """
+    #     This reads a IVCSC formatted matrix from a file. 
+        
+    #     The user can specify the dtype and order of the matrix.
+    #     Each one MUST be specified or the function will default to 
+    #     assuming the matrix is the same type as the current matrix AND 
+    #     initialized.
+
+    #     If the matrix is not initialized, then the function will throw an error.
+    #     """
+    #     if self.wrappedForm is None and (dtype is None or order is None):
+    #         raise ValueError("Template data must be specified for an uninitialized matrix.")
+    #     elif dtype is None or order is None:
+    #         try:
+    #             self.wrappedForm = self.wrappedForm.read(filename)
+    #         except:
+    #             raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from IVCSC.write().")
+    #     else:
+    #         try:
+    #             self.wrappedForm = eval("PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order))(filename)
+    #         except:
+    #             raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from IVCSC.write().")
+    #         self.dtype = dtype
+    #         self.order = order
+
+    #     self.rows = self.wrappedForm.rows
+    #     self.cols = self.wrappedForm.cols
+    #     self.nnz = self.wrappedForm.nonZeros()
+    #     self.innerSize = self.wrappedForm.innerSize
+    #     self.outerSize = self.wrappedForm.outerSize
+    #     self.bytes = self.wrappedForm.byteSize
 
     def _CSconstruct(self, moduleName: str, spmat):
         self.indexT: np.dtype = type(spmat.indices[0])
@@ -330,3 +379,79 @@ class IVCSC:
 
         self.wrappedForm = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
         self.bytes: np.uint64 = self.wrappedForm.byteSize
+
+    def read(self, filename: str):
+
+        """
+        Private helper function to read a VCSC formatted matrix from a file.
+        This function should automatically determine the template type of the matrix.
+        """
+
+        assert filename[-6:] == ".ivcsc", "File must have a .ivcsc extension"
+
+        try:
+            matFile = open(filename, "rb")
+        except:
+            raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from IVCSC.write().")
+
+        matFile.seek(16)
+        valueByte = matFile.read(4)
+        matFile.close()
+
+        typeSize = int(valueByte[0])
+        isFloating = bool(valueByte[1])
+        isSigned = bool(valueByte[2])
+        isColumnMajor = bool(valueByte[3])
+
+        if isFloating:
+            match typeSize:
+                case 4:
+                    self.dtype = np.dtype(np.float32)
+                case 8:
+                    self.dtype = np.dtype(np.float64)
+                case _:
+                    raise ValueError("Invalid floating point flag byte in IVCSC file: " + filename + ". Value: " + str(valueByte))
+        else:
+            match typeSize:
+                case 1:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int8)
+                    else:
+                        self.dtype = np.dtype(np.uint8)
+                case 2:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int16)
+                    else:
+                        self.dtype = np.dtype(np.uint16)
+                case 4:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int32)
+                    else:
+                        self.dtype = np.dtype(np.uint32)
+                case 8:
+                    if isSigned:
+                        self.dtype = np.dtype(np.int64)
+                    else:
+                        self.dtype = np.dtype(np.uint64)
+                case _:
+                    raise ValueError("Invalid type size in IVCSC file: " + filename + ". Value: " + str(typeSize))
+        
+
+        if isColumnMajor:
+            self.order = "Col"
+        else:
+            self.order = "Row"
+
+        self.wrappedForm = eval(str("PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)))(filename)
+        # try:
+        # self.wrappedForm.read()
+        # except:
+            # raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from IVCSC.write().")
+
+        self.rows = self.wrappedForm.rows
+        self.cols = self.wrappedForm.cols
+        self.nnz = self.wrappedForm.nonZeros()
+        self.innerSize = self.wrappedForm.innerSize
+        self.outerSize = self.wrappedForm.outerSize
+        self.bytes = self.wrappedForm.byteSize
+
