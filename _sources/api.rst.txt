@@ -2,7 +2,11 @@
 API Reference
 ================
 
+ 
+.. toctree:: 
+   :glob:
 
-.. autosummary:: 
-   :toctree: generated/
-   :recursive:
+   api/*
+
+..    VCSC
+..    IVCSC

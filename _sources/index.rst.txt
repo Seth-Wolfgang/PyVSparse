@@ -22,10 +22,9 @@ PyVSparse can be installed using pip:
    :titlesonly:
 
    PyVSparse
-   VCSC
-   IVCSC
-   examples
    api
+   examples
+  
 
 Indices and tables
 ==================
