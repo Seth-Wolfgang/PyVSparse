@@ -373,7 +373,8 @@ class IVCSC:
 
         :param other: The matrix to compare to
         :type other: IVCSC
-        :return True if the matrices are equal, False otherwise
+
+        :return: True if the matrices are equal, False otherwise
         :rtype: bool
         """
 
@@ -385,7 +386,7 @@ class IVCSC:
 
         :param other: The matrix to compare to
         :type other: IVCSC
-        :return True if the matrices are not equal, False otherwise
+        :return: True if the matrices are not equal, False otherwise
         :rtype: bool
         """
 

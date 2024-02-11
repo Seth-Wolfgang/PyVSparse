@@ -407,7 +407,7 @@ class VCSC:
 
         :param other: The matrix to compare to
         :type other: VCSC
-        :return True if the matrices are equal, False otherwise
+        :return: True if the matrices are equal, False otherwise
         :rtype: bool
         """
 
@@ -420,7 +420,7 @@ class VCSC:
 
         :param other: The matrix to compare to
         :type other: VCSC
-        :return True if the matrices are not equal, False otherwise
+        :return: True if the matrices are not equal, False otherwise
         :rtype: bool
         """
 
@@ -502,7 +502,7 @@ class VCSC:
         :param outerIndex: The index of the column or row to get the counts of
         :type outerIndex: int
         :return: A list containing the counts of the column or row
-        :rtype: list
+        :rtype: list[Union[np.uint8, np.uint16, np.uint32, np.uint64]]
         :raises IndexError: If the provided index is out of range
         """
 
@@ -697,7 +697,6 @@ class VCSC:
         self.bytes = self.wrappedForm.byteSize
 
     def _CSconstruct(self, moduleName: str, spmat):
-
         """
         Private helper function to construct a VCSC matrix from a scipy.sparse CSC or CSR matrix.
         This uses the Eigen::SparseMatrix<T> constructor in C++. Pybind11 handles the conversion.
