@@ -31,7 +31,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.duration',
     'sphinx.ext.autosummary',]
 
-autodoc_mock_imports = ["PyVSparse._PyVSparse"]
+autodoc_mock_imports = ["PyVSparse._PyVSparse", "scipy", "numpy", "matplotlib", ]
 autodoc_typehints = "description"
 autodoc_class_signature = "separated"
 
