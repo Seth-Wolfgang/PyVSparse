@@ -8,6 +8,8 @@ jobs:
     permissions:
       contents: write
     steps:
+    - uses: pip install --upgrade pip
+    - uses: pip install sphinx sphinx-rtd-theme
     - uses: actions/checkout@v4
     - name: Build HTML
       uses: ammaraskar/sphinx-action@master
