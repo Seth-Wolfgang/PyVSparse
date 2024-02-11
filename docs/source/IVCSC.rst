@@ -1,5 +1,5 @@
 Index-and Value-Compressed Sparse Column (IVCSC) Class Reference
 ================================================================
 
-.. autoclass:: PyVSparse.IVCSC
+.. autoclass:: IVCSC
     :members:
