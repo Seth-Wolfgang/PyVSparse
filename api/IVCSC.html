@@ -82,6 +82,459 @@
              
   <section id="index-and-value-compressed-sparse-column-ivcsc-class-reference">
 <h1>Index-and Value-Compressed Sparse Column (IVCSC) Class Reference<a class="headerlink" href="#index-and-value-compressed-sparse-column-ivcsc-class-reference" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyVSparse.</span></span><span class="sig-name descname"><span class="pre">IVCSC</span></span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC._COOconstruct">
+<span class="sig-name descname"><span class="pre">_COOconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">moduleName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC._COOconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC._COOconstruct" title="Link to this definition"></a></dt>
+<dd><p>Private helper function to construct a IVCSC matrix from a scipy.sparse COO matrix.
+In C++, the constructor expects std::tuple&lt;indexT, indexT, T&gt; for each non-zero element.</p>
+<p>C++ declaration:
+template &lt;typename T2, typename indexT&gt;
+IVCSC(std::vector&lt;std::tuple&lt;indexT, indexT, T2&gt;&gt;&amp; entries, uint64_t num_rows, uint32_t num_cols, uint32_t nnz);</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>moduleName</strong> (<em>str</em>) – The name of the module to construct the IVCSC matrix from</p></li>
+<li><p><strong>spmat</strong> (<em>sp.sparse.coo_matrix</em>) – The input matrix</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC._CSconstruct">
+<span class="sig-name descname"><span class="pre">_CSconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">moduleName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC._CSconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC._CSconstruct" title="Link to this definition"></a></dt>
+<dd><p>Private helper function to construct a IVCSC matrix from a scipy.sparse CSC or CSR matrix.
+This uses the Eigen::SparseMatrix&lt;T&gt; constructor in C++. Pybind11 handles the conversion.</p>
+<p>A pure Python implementation of a CSR/C matrix could be used to make a IVCSC matrix, but
+that is not implemented at this time. The C++ backend <em>should</em> support it though.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>moduleName</strong> (<em>str</em>) – The name of the module to construct the IVCSC matrix from</p></li>
+<li><p><strong>spmat</strong> (<em>Union</em><em>[</em><em>sp.sparse.csc_matrix</em><em>, </em><em>sp.sparse.csr_matrix</em><em>]</em>) – The input matrix</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.__eq__">
+<span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.__eq__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.__eq__" title="Link to this definition"></a></dt>
+<dd><p>Compares the matrix to another IVCSC matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC"><em>IVCSC</em></a>) – The matrix to compare to</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the matrices are equal, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Random access operator for IVCSC.</p>
+<p>As of right now, this only supports random access of a single element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>int</em>) – The index of the element to access</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value at the index</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.__imul__">
+<span class="sig-name descname"><span class="pre">__imul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.__imul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.__imul__" title="Link to this definition"></a></dt>
+<dd><p>Inplace multiplication of the matrix by a scalar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>float</em><em>]</em>) – The value or object to multiply the matrix by</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The matrix multiplied by the input</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC">IVCSC</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the input is not a scalar or numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'col'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.__init__" title="Link to this definition"></a></dt>
+<dd><p>Index-and Value-Compressed Sparse Column is a read-only sparse matrix format optimzed for redundant data.
+See README.md for more information.
+While the name is indicitive of the storage order, the matrix can be stored in either column-major or row-major order.</p>
+<p>This class can be constructed from a few different options:
+1.) scipy.sparse.csc_matrix
+2.) scipy.sparse.csr_matrix
+3.) scipy.sparse.coo_matrix
+4.) PyVSparse.IVCSC
+5.) A .vcsc file (written by IVCSC.write() or a C++ program that uses IVCSC.write()).</p>
+<p>Unlike VCSC, IVCSC has no indexType parameter. The indices are compressed using positive delta-encoding and
+byte-packing, so index sizes may be different for each value.</p>
+<p>The user can also specify the storage order of the matrix. The default is “Col” for column-major order.</p>
+<dl class="simple">
+<dt>Note: IVCSC is generally slower than VCSC due to the extra compression making byte alignment impossible.</dt><dd><p>However, IVCSC is far more memory efficent for the same reason.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spmat</strong> (<em>Union</em><em>[</em><em>sp.sparse.csc_matrix</em><em>, </em><em>sp.sparse.csr_matrix</em><em>, </em><em>sp.sparse.coo_matrix</em><em>, </em><a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC"><em>PyVSparse.IVCSC</em></a><em>, </em><em>str</em><em>]</em>) – The input matrix or .ivcsc filename</p></li>
+<li><p><strong>order</strong> (<em>str</em>) – The storage order of the matrix. The default is “Col” for column-major order. “Row” can also be specified for row-major order. Capitalization does not matter.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.__mul__">
+<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.__mul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.__mul__" title="Link to this definition"></a></dt>
+<dd><p>Multiplication of the matrix by a:
+- scalar
+- dense numpy matrix or vector</p>
+<p>If the input is a scalar, then the matrix returned will be a IVCSC matrix.
+Else, the matrix returned will be a dense numpy matrix or vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>float</em><em>, </em><em>np.ndarray</em><em>]</em>) – The value or object to multiply the matrix by</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The matrix multiplied by the input</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>union[<a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC">IVCSC</a>, np.ndarray]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the input is not a scalar or numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.__ne__">
+<span class="sig-name descname"><span class="pre">__ne__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.__ne__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.__ne__" title="Link to this definition"></a></dt>
+<dd><p>Compares the matrix to another IVCSC matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC"><em>IVCSC</em></a>) – The matrix to compare to</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the matrices are not equal, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.append" title="Link to this definition"></a></dt>
+<dd><p>Appends a matrix to the current matrix</p>
+<p>The appended matrix must be of the same type or a scipy.sparse.csc_matrix/csr_matrix
+depending on the storage order of the current matrix. For a column-major matrix,
+the appended matrix will be appended to the end of the columns. For a row-major matrix,
+the appended matrix will be appended to the end of the rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>matrix</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC"><em>IVCSC</em></a><em>, </em><em>sp.sparse.csc_matrix</em><em>, </em><em>sp.sparse.csr_matrix</em><em>]</em>) – The matrix to append</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the input matrix is not a supported type of matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.byteSize">
+<span class="sig-name descname"><span class="pre">byteSize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.byteSize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.byteSize" title="Link to this definition"></a></dt>
+<dd><p>Returns the memory consumption of the matrix in bytes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The memory consumption of the matrix in bytes</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.uint64</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.fromIVCSC">
+<span class="sig-name descname"><span class="pre">fromIVCSC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ivcsc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.fromIVCSC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.fromIVCSC" title="Link to this definition"></a></dt>
+<dd><p>Copy constructor for IVCSC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ivcsc</strong> (<a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC"><em>IVCSC</em></a>) – The input IVCSC matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.max">
+<span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.max" title="Link to this definition"></a></dt>
+<dd><p>On axis=None, returns the maximum of all elements in the matrix</p>
+<p>If axis=0, returns the maximum of each column</p>
+<p>If axis=1, returns the maximum of each row</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>int</em>) – The axis to find the maximum along. The default is None, which finds the maximum of all elements in the matrix.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The maximum of the matrix or the maximum of each row/column</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.int64, np.double, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.min">
+<span class="sig-name descname"><span class="pre">min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.min" title="Link to this definition"></a></dt>
+<dd><p>On axis=None, returns the minimum of all <em>nonzero</em> elements in the matrix</p>
+<p>If axis=0, returns the <em>nonzero</em> minimum of each column</p>
+<p>If axis=1, returns the <em>nonzero</em>  minimum of each row</p>
+<dl>
+<dt>Note: because of the way the matrix is stored,</dt><dd><p>minimums that are zero are very expensive to compute.</p>
+<p>There are a few exceptions:
+- If a row/column is all zeros, then the minimum will be zero.
+- if axis=None, then the minimum will be zero if nnz &lt; rows * cols</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>int</em>) – The axis to find the minimum along. The default is None, which finds the minimum of all <em>nonzero</em> elements in the matrix.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The minimum of the matrix or the minimum of each row/column</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.int64, np.double, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.norm" title="Link to this definition"></a></dt>
+<dd><p>Returns the Frobenius norm of the matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Frobenius norm of the matrix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.double</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.read" title="Link to this definition"></a></dt>
+<dd><p>Function to read a IVCSC formatted matrix from a file.
+This function should automatically determine the template type of the matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The name of the file to read from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.shape" title="Link to this definition"></a></dt>
+<dd><p>Returns the shape of the matrix as a tuple (rows, cols)</p>
+<p>:return The shape of the matrix
+:rtype: Tuple[np.uint32, np.uint32]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[numpy.uint32, numpy.uint32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.slice">
+<span class="sig-name descname"><span class="pre">slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.slice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.slice" title="Link to this definition"></a></dt>
+<dd><p>Returns a slice of the matrix.</p>
+<p>Currently, only slicing by storage order is supported. For example, if the matrix is stored in column-major order,
+Then the returned matrix will be a slice of the columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<em>int</em>) – The start index of the slice</p></li>
+<li><p><strong>end</strong> (<em>int</em>) – The end index of the slice</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The slice of the matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC">IVCSC</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.sum">
+<span class="sig-name descname"><span class="pre">sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.sum" title="Link to this definition"></a></dt>
+<dd><p>On axis=None, returns the sum of all elements in the matrix</p>
+<p>If axis=0, returns the sum of each column</p>
+<p>If axis=1, returns the sum of each row</p>
+<p>Note: Sum is either int64 or a double</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>int</em>) – The axis to sum along. The default is None, which sums all elements in the matrix.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The sum of the matrix or the sum of each row/column</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.int64, np.double, np.ndarray]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the axis is not 0, 1, or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.tocsc">
+<span class="sig-name descname"><span class="pre">tocsc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.tocsc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.tocsc" title="Link to this definition"></a></dt>
+<dd><p>Converts the matrix to a scipy.sparse.csc_matrix</p>
+<dl class="simple">
+<dt>Note: This is a copy. This does not destroy the original matrix.</dt><dd><p>If the storage order of the IVCSC matrix is in row-major, then
+then a csr_matrix will be created and converted to a csc_matrix.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The matrix in scipy.sparse.csc_matrix format</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>sp.sparse.csc_matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.tocsr">
+<span class="sig-name descname"><span class="pre">tocsr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.tocsr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.tocsr" title="Link to this definition"></a></dt>
+<dd><p>Converts the matrix to a scipy.sparse.csr_matrix</p>
+<dl class="simple">
+<dt>Note: This is a copy. This does not destroy the original matrix.</dt><dd><p>If the storage order of the IVCSC matrix is in column-major, then
+then a csc_matrix will be created and converted to a csr_matrix.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The matrix in scipy.sparse.csr_matrix format</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>sp.sparse.csr_matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.trace">
+<span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.trace" title="Link to this definition"></a></dt>
+<dd><p>Returns the sum of all elements along the diagonal.</p>
+<p>Throws ValueError if matrix is not square.</p>
+<p>Note: Sum is either int64 or a double.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The sum of the diagonal</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[np.int64, np.double]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the matrix is not square</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.transpose">
+<span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.transpose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.transpose" title="Link to this definition"></a></dt>
+<dd><p>Transposes the matrix.</p>
+<dl>
+<dt>Note: This is a very slow operation. It is recommended to use the transpose() function from another matrix format instead.</dt><dd><p>Nothing is returned if the operation is in place.</p>
+<p>Memory usage will change after this operation.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inplace</strong> (<em>bool</em>) – Whether to transpose the matrix in place. The default is True</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The transposed IVCSC matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#PyVSparse.IVCSC" title="PyVSparse.IVCSC">IVCSC</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.vectorLength">
+<span class="sig-name descname"><span class="pre">vectorLength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.vectorLength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.vectorLength" title="Link to this definition"></a></dt>
+<dd><p>Returns the euclidean length of the vector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vector</strong> (<em>int</em>) – The index of the vector to find the euclidean length of</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The euclidean length of the vector</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.double</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>IndexError</strong> – If the vector index is out of range</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.write" title="Link to this definition"></a></dt>
+<dd><p>Writes the matrix to a file. If the file name doesn’t include .vcsc, it will be appended.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The name of the file to write to</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 
