@@ -2,5 +2,7 @@
 Value-Compressed Sparse Column (VCSC) Class Reference
 =====================================================
 
-.. autoclass:: VCSC
+.. currentmodule:: PyVSparse
+
+.. autoclass:: PyVSparse.VCSC
     :members: 
