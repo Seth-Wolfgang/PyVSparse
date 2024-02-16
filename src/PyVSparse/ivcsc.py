@@ -54,7 +54,9 @@ class IVCSC:
         # If the input is a scipy.sparse matrix or IVSparse matrix
         if not isinstance(spmat, str):
             self.dtype: np.dtype = spmat.dtype
-
+            if spmat.nnz == 0:
+                raise ValueError("Input matrix must have at least one non-zero element")
+            
             if(spmat.format == "csc"):
                 self.order = "Col"
 
@@ -89,7 +91,7 @@ class IVCSC:
         :type ivcsc: IVCSC
         """
 
-        self.wrappedForm = ivcsc.wrappedForm.copy()
+        self.backend = ivcsc.backend.copy()
         self.dtype = ivcsc.dtype
         self.rows = ivcsc.rows
         self.cols = ivcsc.cols
@@ -102,10 +104,10 @@ class IVCSC:
         raise NotImplementedError
         
     def __repr__(self) -> None:
-        self.wrappedForm.print()
+        self.backend.print()
 
     def __str__(self) -> str:
-        return self.wrappedForm.__str__()
+        return self.backend.__str__()
 
     def __deepcopy__(self, memo): 
         _copy = self.copy()
@@ -133,11 +135,11 @@ class IVCSC:
         :raises ValueError: If the axis is not 0, 1, or None
         """
         if axis is None:
-            return self.wrappedForm.sum()
+            return self.backend.sum()
         elif axis == 0:
-            return self.wrappedForm.colSum()
+            return self.backend.colSum()
         elif axis == 1:
-            return self.wrappedForm.rowSum()
+            return self.backend.rowSum()
         else:
             raise ValueError("Axis must be 0, 1, or None")
 
@@ -157,7 +159,7 @@ class IVCSC:
         if self.rows != self.cols:
             raise ValueError("Cannot take trace of non-square matrix")
         
-        return self.wrappedForm.trace()
+        return self.backend.trace()
 
     
     def max(self, axis=None):
@@ -176,9 +178,9 @@ class IVCSC:
         """
 
         if axis is None:
-            return self.wrappedForm.max()
+            return self.backend.max()
         else:
-            return self.wrappedForm.max(axis)
+            return self.backend.max(axis)
     
     def min(self, axis=None):
                 
@@ -203,9 +205,9 @@ class IVCSC:
         """
 
         if axis is None:
-            return self.wrappedForm.min()
+            return self.backend.min()
         else:
-            return self.wrappedForm.min(axis)
+            return self.backend.min(axis)
 
     def byteSize(self) -> np.uint64: 
         """
@@ -215,7 +217,7 @@ class IVCSC:
         :rtype: np.uint64
         """
 
-        return self.wrappedForm.byteSize    
+        return self.backend.byteSize    
 
     def norm(self) -> np.double: # TODO: add more norms
 
@@ -226,7 +228,7 @@ class IVCSC:
         :rtype: np.double
         """
 
-        return self.wrappedForm.norm()
+        return self.backend.norm()
     
 
     
@@ -247,7 +249,7 @@ class IVCSC:
         elif vector < 0:
             vector += self.outerSize
 
-        return self.wrappedForm.vectorLength(vector)
+        return self.backend.vectorLength(vector)
     
     def tocsc(self) -> sp.sparse.csc_matrix:
         """
@@ -262,8 +264,8 @@ class IVCSC:
         """
         
         if self.order == "Row":
-            return self.wrappedForm.toEigen().tocsc()
-        return self.wrappedForm.toEigen()
+            return self.backend.toEigen().tocsc()
+        return self.backend.toEigen()
     
     def tocsr(self) -> sp.sparse.csr_matrix:
         """
@@ -280,7 +282,7 @@ class IVCSC:
         if self.order == "Col":
             return self.tocsc().tocsr()
         else:
-            return self.wrappedForm.toEigen()
+            return self.backend.toEigen()
 
     def transpose(self, inplace = True) -> IVCSC:
         
@@ -300,16 +302,16 @@ class IVCSC:
         """
         
         if inplace:
-            self.wrappedForm = self.wrappedForm.transpose()
+            self.backend = self.backend.transpose()
             self.rows, self.cols = self.cols, self.rows
             self.innerSize, self.outerSize = self.outerSize, self.innerSize
-            self.bytes = self.wrappedForm.byteSize
+            self.bytes = self.backend.byteSize
             return self
         temp = self
-        temp.wrappedForm = self.wrappedForm.transpose()
+        temp.backend = self.backend.transpose()
         temp.rows, temp.cols = self.cols, self.rows
         temp.innerSize, temp.outerSize = self.outerSize, self.innerSize
-        temp.bytes = self.wrappedForm.byteSize
+        temp.bytes = self.backend.byteSize
         return temp
 
     def shape(self) -> tuple[np.uint32, np.uint32]: 
@@ -322,7 +324,7 @@ class IVCSC:
         
         return (self.rows, self.cols)
     
-    def __imul__(self, other: np.ndarray) -> IVCSC:
+    def __imul__(self, other) -> IVCSC:
 
         """
         Inplace multiplication of the matrix by a scalar
@@ -335,7 +337,7 @@ class IVCSC:
         """
 
         if(isinstance(other, int) or isinstance(other, float)):
-            self.wrappedForm.__imul__(other)
+            self.backend.__imul__(other)
         else:
             raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
             
@@ -358,11 +360,11 @@ class IVCSC:
         """
 
         if(isinstance(other, np.ndarray)):
-            temp = self.wrappedForm.__mul__(other)
+            temp = self.backend.__mul__(other)
             return temp
         elif(isinstance(other, int) or isinstance(other, float)):
             result = self
-            result.wrappedForm = self.wrappedForm.__mul__(other)
+            result.backend = self.backend.__mul__(other)
             return result
         else:
             raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
@@ -378,7 +380,7 @@ class IVCSC:
         :rtype: bool
         """
 
-        return self.wrappedForm.__eq__(other)
+        return self.backend.__eq__(other)
     
     def __ne__(self, other) -> bool:
         """
@@ -390,7 +392,7 @@ class IVCSC:
         :rtype: bool
         """
 
-        return self.wrappedForm.__ne__(other)
+        return self.backend.__ne__(other)
     
     def __getitem__(self, key) -> any: # type: ignore
         """
@@ -404,7 +406,7 @@ class IVCSC:
         :rtype: any
         """
 
-        return self.wrappedForm.__getitem__(key)
+        return self.backend.__getitem__(key)
     
 
     def append(self, matrix) -> None: 
@@ -422,15 +424,15 @@ class IVCSC:
         """
 
         if isinstance(matrix, IVCSC) and self.order == matrix.order:
-            self.wrappedForm.append(matrix.wrappedForm)
+            self.backend.append(matrix.backend)
             self.rows += matrix.shape()[0] # type: ignore 
             self.cols += matrix.shape()[1] # type: ignore 
         elif isinstance(matrix, sp.sparse.csc_matrix) and self.order == "Col":
-            self.wrappedForm.append(matrix)
+            self.backend.append(matrix)
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
         elif isinstance(matrix, sp.sparse.csr_matrix) and self.order == "Row":
-            self.wrappedForm.append(matrix)
+            self.backend.append(matrix)
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
         else:
@@ -463,8 +465,8 @@ class IVCSC:
         """
         
         result = self
-        result.wrappedForm = self.wrappedForm.slice(start, end)
-        result.nnz = result.wrappedForm.nonZeros()
+        result.backend = self.backend.slice(start, end)
+        result.nnz = result.backend.nonZeros()
 
         if(self.order == "Col"):
             result.innerSize = self.rows
@@ -488,7 +490,7 @@ class IVCSC:
         :type filename: str
         """
 
-        self.wrappedForm.write(filename)
+        self.backend.write(filename)
 
 
     def read(self, filename: str):
@@ -541,18 +543,18 @@ class IVCSC:
         else:
             self.order = "Row"
 
-        self.wrappedForm = eval(str("PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)))(filename)
+        self.backend = eval(str("PyVSparse._PyVSparse._IVCSC._" + str(self.dtype) + "_" + str(self.order)))(filename)
         # try:
-        # self.wrappedForm.read()
+        # self.backend.read()
         # except:
             # raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from IVCSC.write().")
 
-        self.rows = self.wrappedForm.rows
-        self.cols = self.wrappedForm.cols
-        self.nnz = self.wrappedForm.nonZeros()
-        self.innerSize = self.wrappedForm.innerSize
-        self.outerSize = self.wrappedForm.outerSize
-        self.bytes = self.wrappedForm.byteSize
+        self.rows = self.backend.rows
+        self.cols = self.backend.cols
+        self.nnz = self.backend.nonZeros()
+        self.innerSize = self.backend.innerSize
+        self.outerSize = self.backend.outerSize
+        self.bytes = self.backend.byteSize
 
     def _CSconstruct(self, moduleName: str, spmat):
 
@@ -580,8 +582,8 @@ class IVCSC:
             self.innerSize: np.uint32 = self.cols
             self.outerSize: np.uint32 = self.rows
         
-        self.wrappedForm = eval(str(moduleName))(spmat)
-        self.bytes: np.uint64 = self.wrappedForm.byteSize
+        self.backend = eval(str(moduleName))(spmat)
+        self.bytes: np.uint64 = self.backend.byteSize
 
     def _COOconstruct(self, moduleName: str, spmat): 
         """
@@ -613,5 +615,5 @@ class IVCSC:
         for r, c, v in zip(spmat.row, spmat.col, spmat.data):
             coords.append((r, c, v))    
 
-        self.wrappedForm = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
-        self.bytes: np.uint64 = self.wrappedForm.byteSize
+        self.backend = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
+        self.bytes: np.uint64 = self.backend.byteSize

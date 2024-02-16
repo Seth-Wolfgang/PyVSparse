@@ -3,8 +3,12 @@
 Python wrapper for [IVSparse](https://github.com/Seth-Wolfgang/IVSparse) \
 Link to paper on [ArXiv](https://arxiv.org/abs/2309.04355)
 
+## Documentation
+
+Link to GitHub Pages: [Docs](https://seth-wolfgang.github.io/PyVSparse/)
+
 IVSparse is a library for Index-and-Value Compressed Sparse Column (IVCSC) and Value Compressed Sparse Column (VCSC). \
-Each are methods to losslessly compress redundant sparse matrices while keeping them usable (iterable). \
+Each are methods to losslessly compress redundant sparse matrices while keeping them usable (iterable).
 
 For a vector:
 
@@ -122,6 +126,7 @@ print("IVCSC: \n", IVCSC_Result)
 ```
 
 Returns
+
 ```bash
 CSC: 
  [[-38]
@@ -144,12 +149,8 @@ IVCSC:
 
 ## Todo
 
-1. Finish wrapper
-2. Comments
-3. Documentation
-4. Fix dynamic index size for VCSC
-5. parallelize compilation
-6. Compatability for windows and mac
+1. parallelize compilation
+2. Compatability for windows and mac
 
 ## To cite IVSparse
 

@@ -79,6 +79,8 @@ class VCSC:
         # If the input is a scipy.sparse matrix or IVSparse matrix
         if not isinstance(spmat, str):
             self.dtype: np.dtype = spmat.dtype
+            if spmat.nnz == 0:
+                raise ValueError("Input matrix must have at least one non-zero element")
             
             if(spmat.format == "csc"):
                 self.order = "Col"
@@ -115,7 +117,7 @@ class VCSC:
         :type spmat: VCSC
         """
 
-        self.wrappedForm = spmat.wrappedForm.copy()
+        self.backend = spmat.backend.copy()
         self.dtype = spmat.dtype
         self.indexType = spmat.indexType
         self.rows = spmat.rows
@@ -129,10 +131,10 @@ class VCSC:
         raise NotImplementedError
     
     def __repr__(self):
-        return self.wrappedForm.__repr__()
+        return self.backend.__repr__()
 
     def __str__(self) -> str:
-        return self.wrappedForm.__str__()
+        return self.backend.__str__()
 
     def __deepcopy__(self): 
         _copy = VCSC(self)
@@ -162,11 +164,11 @@ class VCSC:
         """
 
         if axis is None:
-            return self.wrappedForm.sum()
+            return self.backend.sum()
         elif axis == 0:
-            return self.wrappedForm.colSum()
+            return self.backend.colSum()
         elif axis == 1:
-            return self.wrappedForm.rowSum()
+            return self.backend.rowSum()
         else:
             raise ValueError("Axis must be 0, 1, or None")
         
@@ -188,7 +190,7 @@ class VCSC:
         if self.rows != self.cols:
             raise ValueError("Cannot take trace of non-square matrix")
         
-        return self.wrappedForm.trace()
+        return self.backend.trace()
     
     def max(self, axis=None):
             
@@ -206,9 +208,9 @@ class VCSC:
         """
 
         if axis is None:
-            return self.wrappedForm.max()
+            return self.backend.max()
         else:
-            return self.wrappedForm.max(axis)
+            return self.backend.max(axis)
     
     def min(self, axis=None):
                 
@@ -233,9 +235,9 @@ class VCSC:
         """
 
         if axis is None:
-            return self.wrappedForm.min()
+            return self.backend.min()
         else:
-            return self.wrappedForm.min(axis)
+            return self.backend.min(axis)
 
     def byteSize(self) -> np.uint64: 
         """
@@ -244,7 +246,7 @@ class VCSC:
         :rtype: np.uint64
         """
 
-        return self.wrappedForm.byteSize
+        return self.backend.byteSize
     
     def norm(self) -> np.double: # TODO add more norms
         
@@ -255,7 +257,7 @@ class VCSC:
         :rtype: np.double
         """
         
-        return self.wrappedForm.norm()
+        return self.backend.norm()
     
     def vectorLength(self, vector: int) -> np.double: # TODO test
         
@@ -274,7 +276,7 @@ class VCSC:
         elif vector < 0:
             vector += self.outerSize
 
-        return self.wrappedForm.vectorLength(vector)
+        return self.backend.vectorLength(vector)
 
     def tocsc(self) -> sp.sparse.csc_matrix:
 
@@ -290,8 +292,8 @@ class VCSC:
         """
 
         if self.order == "Row":
-            return self.wrappedForm.toEigen().tocsc()
-        return self.wrappedForm.toEigen()
+            return self.backend.toEigen().tocsc()
+        return self.backend.toEigen()
     
     def tocsr(self) -> sp.sparse.csr_matrix:
 
@@ -309,7 +311,7 @@ class VCSC:
         if self.order == "Col":
             return self.tocsc().tocsr()
         else:
-            return self.wrappedForm.toEigen()
+            return self.backend.toEigen()
 
     def transpose(self, inplace = True) -> VCSC:
         
@@ -329,16 +331,16 @@ class VCSC:
         """
         
         if inplace:
-            self.wrappedForm = self.wrappedForm.transpose()
+            self.backend = self.backend.transpose()
             self.rows, self.cols = self.cols, self.rows
             self.innerSize, self.outerSize = self.outerSize, self.innerSize
-            self.bytes = self.wrappedForm.byteSize
+            self.bytes = self.backend.byteSize
             return self
         temp = self
-        temp.wrappedForm = self.wrappedForm.transpose()
+        temp.backend = self.backend.transpose()
         temp.rows, temp.cols = self.cols, self.rows
         temp.innerSize, temp.outerSize = self.outerSize, self.innerSize
-        temp.bytes = temp.wrappedForm.byteSize
+        temp.bytes = temp.backend.byteSize
         return temp
         
     
@@ -353,7 +355,7 @@ class VCSC:
 
         return (self.rows, self.cols)
     
-    def __imul__(self, other: np.ndarray) -> VCSC: 
+    def __imul__(self, other) -> VCSC: 
 
         """
         Inplace multiplication of the matrix by a scalar
@@ -366,7 +368,7 @@ class VCSC:
         """
 
         if(type(other) == int or type(other) == float):
-            self.wrappedForm.__imul__(other)
+            self.backend.__imul__(other)
         else:
             raise TypeError("Cannot multiply VCSC by " + str(type(other)))
             
@@ -390,11 +392,11 @@ class VCSC:
         """
 
         if(isinstance(other, np.ndarray)): # Dense numpy matrix or vector
-            temp: np.ndarray = self.wrappedForm * other
+            temp: np.ndarray = self.backend * other
             return temp
         elif(isinstance(other, int) or isinstance(other, float)): # Scalar
             result = self
-            result.wrappedForm = self.wrappedForm * other
+            result.backend = self.backend * other
             return result
         else:
             raise TypeError("Cannot multiply VCSC by " + str(type(other)))
@@ -410,7 +412,7 @@ class VCSC:
         :rtype: bool
         """
 
-        return self.wrappedForm.__eq__(other)
+        return self.backend.__eq__(other)
     
     def __ne__(self, other: VCSC) -> bool:
         
@@ -423,7 +425,7 @@ class VCSC:
         :rtype: bool
         """
 
-        return self.wrappedForm.__ne__(other)
+        return self.backend.__ne__(other)
     
     def __getitem__(self, key) -> any: # type: ignore
         
@@ -438,7 +440,7 @@ class VCSC:
         :rtype: any
         """
         
-        return self.wrappedForm.__getitem__(key)
+        return self.backend.__getitem__(key)
     
     def getValues(self, outerIndex: int) -> list: 
 
@@ -460,7 +462,7 @@ class VCSC:
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
             message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
             raise IndexError(message)
-        return self.wrappedForm.getValues(outerIndex)
+        return self.backend.getValues(outerIndex)
     
     def getIndices(self, outerIndex: int) -> list: 
 
@@ -482,7 +484,7 @@ class VCSC:
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
             message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
             raise IndexError(message)
-        return self.wrappedForm.getIndices(outerIndex)
+        return self.backend.getIndices(outerIndex)
     
     def getCounts(self, outerIndex: int) -> list:
 
@@ -510,7 +512,7 @@ class VCSC:
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
             message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
             raise IndexError(message)
-        return self.wrappedForm.getCounts(outerIndex)
+        return self.backend.getCounts(outerIndex)
     
     def getNumIndices(self, outerIndex: int) -> list: 
         
@@ -532,7 +534,7 @@ class VCSC:
         elif outerIndex >= self.outerSize or outerIndex < 0: #type: ignore
             message = "Outer index out of range. Input: " + str(outerIndex) + " Range: [" + str(int(-self.outerSize) + 1) + ", " + str(int(self.outerSize) - 1) + "]"
             raise IndexError(message)
-        return self.wrappedForm.getNumIndices(outerIndex)
+        return self.backend.getNumIndices(outerIndex)
     
     def append(self, matrix) -> None: 
 
@@ -550,15 +552,15 @@ class VCSC:
         """
 
         if isinstance(matrix, VCSC) and self.order == matrix.order:
-            self.wrappedForm.append(matrix.wrappedForm)
+            self.backend.append(matrix.backend)
             self.rows += matrix.shape()[0] # type: ignore
             self.cols += matrix.shape()[1] # type: ignore
         elif isinstance(matrix, sp.sparse.csc_matrix) and self.order == "Col":
-            self.wrappedForm.append(matrix)
+            self.backend.append(matrix)
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
         elif isinstance(matrix, sp.sparse.csr_matrix) and self.order == "Row":
-            self.wrappedForm.append(matrix.tocsc())
+            self.backend.append(matrix.tocsc())
             self.rows += matrix.shape[0] # type: ignore
             self.cols += matrix.shape[1] # type: ignore
         else:
@@ -592,8 +594,8 @@ class VCSC:
         """
 
         result = self
-        result.wrappedForm = self.wrappedForm.slice(start, end)
-        result.nnz = result.wrappedForm.nonZeros()
+        result.backend = self.backend.slice(start, end)
+        result.nnz = result.backend.nonZeros()
 
         if(self.order == "Col"):
             result.innerSize = self.rows
@@ -617,7 +619,7 @@ class VCSC:
         :type filename: str
         """
 
-        self.wrappedForm.write(filename)
+        self.backend.write(filename)
 
     def read(self, filename: str):
 
@@ -682,18 +684,18 @@ class VCSC:
             self.order = "Row"
 
         # no try-catch is used because of the error handling in the C++ code becomes obfuscated by python.
-        self.wrappedForm = eval(str("PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexType)) + "_" + str(self.order)))(filename)
+        self.backend = eval(str("PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexType)) + "_" + str(self.order)))(filename)
         # try:
-        # self.wrappedForm.read(filename)
+        # self.backend.read(filename)
         # except:
             # raise IOError("Could not open file: " + filename + ". Check that the file is in the correct format or written from VCSC.write().")
 
-        self.rows = self.wrappedForm.rows
-        self.cols = self.wrappedForm.cols
-        self.nnz = self.wrappedForm.nonZeros()
-        self.innerSize = self.wrappedForm.innerSize
-        self.outerSize = self.wrappedForm.outerSize
-        self.bytes = self.wrappedForm.byteSize
+        self.rows = self.backend.rows
+        self.cols = self.backend.cols
+        self.nnz = self.backend.nonZeros()
+        self.innerSize = self.backend.innerSize
+        self.outerSize = self.backend.outerSize
+        self.bytes = self.backend.byteSize
 
     def _CSconstruct(self, moduleName: str, spmat):
         """
@@ -709,7 +711,6 @@ class VCSC:
         :type spmat: Union[sp.sparse.csc_matrix, sp.sparse.csr_matrix]
         """
 
-        self.indexType = type(spmat.indices[0])
         self.rows: np.uint32 = spmat.shape[0]
         self.cols: np.uint32 = spmat.shape[1]
         self.nnz = spmat.nnz
@@ -721,8 +722,8 @@ class VCSC:
             self.innerSize: np.uint32 = self.cols
             self.outerSize: np.uint32 = self.rows
 
-        self.wrappedForm = eval(str(moduleName))(spmat)
-        self.bytes: np.uint64 = self.wrappedForm.byteSize
+        self.backend = eval(str(moduleName))(spmat)
+        self.bytes: np.uint64 = self.backend.byteSize
 
     def _COOconstruct(self, moduleName: str, spmat): 
 
@@ -755,5 +756,5 @@ class VCSC:
         for r, c, v in zip(spmat.row, spmat.col, spmat.data):
             coords.append((r, c, v))    
 
-        self.wrappedForm = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
-        self.bytes: np.uint64 = self.wrappedForm.byteSize
+        self.backend = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
+        self.bytes: np.uint64 = self.backend.byteSize
