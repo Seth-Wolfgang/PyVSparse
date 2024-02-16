@@ -114,8 +114,47 @@ No customization or extra construction paramters are needed.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">ivcsc2</span> <span class="o">==</span> <span class="n">ivcsc2</span><span class="p">)</span> <span class="c1"># True</span>
 </pre></div>
 </div>
-<p>The files written are compatible in Python and C++. In future versions, we will support
-npz files to be read and converted to our formats.</p>
+<p>The files written are compatible in Python and C++.</p>
+<section id="npz-file-i-o">
+<h2>npz File I/O<a class="headerlink" href="#npz-file-i-o" title="Link to this heading"></a></h2>
+<p>For convienece, we also support reading and writing npz files. Writing these files are done through the SciPy library.
+This is essentially a wrapper around SciPy’s <cite>load_npz</cite> function, as it still constructs the CSC matrix.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">save_npz</span><span class="p">(</span><span class="s2">&quot;test.npz&quot;</span><span class="p">,</span> <span class="n">csc_mat</span><span class="p">)</span>
+    <span class="n">newVCSC</span> <span class="o">=</span> <span class="n">PyVSparse</span><span class="o">.</span><span class="n">VCSC</span><span class="p">(</span><span class="s2">&quot;test.npz&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;test.npz&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">newVCSC</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span> <span class="o">==</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span> <span class="c1"># True</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">save_npz</span><span class="p">(</span><span class="s2">&quot;test.npz&quot;</span><span class="p">,</span> <span class="n">csc_mat</span><span class="p">)</span>
+    <span class="n">newIVCSC</span> <span class="o">=</span> <span class="n">PyVSparse</span><span class="o">.</span><span class="n">IVCSC</span><span class="p">(</span><span class="s2">&quot;test.npz&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;test.npz&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">newIVCSC</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span> <span class="o">==</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span> <span class="c1"># true</span>
+</pre></div>
+</div>
+<p>If you have a .npz file, but the format is BSR or some other incompatible format, then you may use the <cite>secondary</cite> parameter
+to specify what format to convert the written matrix to. By default, this is set to CSC.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">bsr_mat</span> <span class="o">=</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">tobsr</span><span class="p">()</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">save_npz</span><span class="p">(</span><span class="s2">&quot;bsr.npz&quot;</span><span class="p">,</span> <span class="n">csc_mat</span><span class="p">)</span>
+    <span class="n">newVCSC</span> <span class="o">=</span> <span class="n">PyVSparse</span><span class="o">.</span><span class="n">VCSC</span><span class="p">(</span><span class="s2">&quot;bsr.npz&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;csr&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;bsr.npz&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">newVCSC</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span> <span class="o">==</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span> <span class="c1"># True</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">save_npz</span><span class="p">(</span><span class="s2">&quot;bsr.npz&quot;</span><span class="p">,</span> <span class="n">csc_mat</span><span class="p">)</span>
+    <span class="n">newIVCSC</span> <span class="o">=</span> <span class="n">PyVSparse</span><span class="o">.</span><span class="n">IVCSC</span><span class="p">(</span><span class="s2">&quot;bsr.npz&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;coo&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;bsr.npz&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">newIVCSC</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span> <span class="o">==</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span> <span class="c1"># true</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 

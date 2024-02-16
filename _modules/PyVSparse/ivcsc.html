@@ -157,7 +157,12 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input matrix does not have a valid format!&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spmat</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">spmat</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">spmat</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_npzConstruct</span><span class="p">(</span><span class="n">spmat</span><span class="p">)</span>
+            <span class="k">elif</span><span class="p">(</span><span class="n">spmat</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;.ivcsc&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">spmat</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input must be a .ivcsc or a scipy.sparse .npz file.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input matrix must be a string or a scipy.sparse matrix&quot;</span><span class="p">)</span></div>
 
@@ -699,6 +704,54 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span></div>
 
 
+<div class="viewcode-block" id="IVCSC._npzConstruct">
+<a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC._npzConstruct">[docs]</a>
+    <span class="k">def</span> <span class="nf">_npzConstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moduleName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="s2">&quot;csc&quot;</span><span class="p">):</span> 
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is a wrapper function to construct a VCSC matrix from a .npz file. This still creates a scipy.sparse matrix, but</span>
+<span class="sd">        allows for a convenient way to read the file.</span>
+
+<span class="sd">        :param moduleName: The npz file name</span>
+<span class="sd">        :type moduleName: str</span>
+<span class="sd">        :param secondary: The secondary format to convert the matrix to a valid form if the npz file is not one with an available constructor. i.e. BSR -&gt; CSC. The default is &quot;csc&quot;</span>
+<span class="sd">        :type secondary: str</span>
+<span class="sd">        :raises TypeError: If the secondary format is not a valid format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tempMat</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">load_npz</span><span class="p">(</span><span class="n">moduleName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">tempMat</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">secondary</span> <span class="o">=</span> <span class="n">secondary</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+
+        <span class="c1"># Secondary format is used to convert the input matrix to a different format</span>
+        <span class="c1"># If a BSR matrix is writtent to the npz file, then the secondary format can be </span>
+        <span class="c1"># used to convert the matrix to a valid format.</span>
+        <span class="k">if</span> <span class="n">tempMat</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;bsr&quot;</span><span class="p">,</span> <span class="s2">&quot;dia&quot;</span><span class="p">,</span> <span class="s2">&quot;lil&quot;</span><span class="p">,</span> <span class="s2">&quot;dok&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">secondary</span> <span class="o">==</span> <span class="s2">&quot;csc&quot;</span><span class="p">:</span>
+                <span class="n">tempMat</span> <span class="o">=</span> <span class="n">tempMat</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">secondary</span> <span class="o">==</span> <span class="s2">&quot;csr&quot;</span><span class="p">:</span>
+                <span class="n">tempMat</span> <span class="o">=</span> <span class="n">tempMat</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">secondary</span> <span class="o">==</span> <span class="s2">&quot;coo&quot;</span><span class="p">:</span>
+                <span class="n">tempMat</span> <span class="o">=</span> <span class="n">tempMat</span><span class="o">.</span><span class="n">tocoo</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid secondary format. Use CSC, CSR, or COO.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">tempMat</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s2">&quot;csc&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;Col&quot;</span>
+            <span class="n">moduleName</span> <span class="o">=</span> <span class="s2">&quot;PyVSparse._PyVSparse._IVCSC._&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_CSconstruct</span><span class="p">(</span><span class="n">moduleName</span><span class="p">,</span> <span class="n">tempMat</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">tempMat</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s2">&quot;csr&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;Row&quot;</span>
+            <span class="n">moduleName</span> <span class="o">=</span> <span class="s2">&quot;PyVSparse._PyVSparse._IVCSC._&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_CSconstruct</span><span class="p">(</span><span class="n">moduleName</span><span class="p">,</span> <span class="n">tempMat</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">tempMat</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s2">&quot;coo&quot;</span><span class="p">):</span>
+            <span class="n">moduleName</span> <span class="o">=</span> <span class="s2">&quot;PyVSparse._PyVSparse._IVCSC._&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_COOconstruct</span><span class="p">(</span><span class="n">moduleName</span><span class="p">,</span> <span class="n">tempMat</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input matrix does not have a valid format! Use CSC, CSR, or COO.&quot;</span><span class="p">)</span></div>
+
+        
 <div class="viewcode-block" id="IVCSC._CSconstruct">
 <a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC._CSconstruct">[docs]</a>
     <span class="k">def</span> <span class="nf">_CSconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moduleName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">spmat</span><span class="p">):</span>

@@ -246,6 +246,24 @@ Else, the matrix returned will be a dense numpy matrix or vector.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="PyVSparse.IVCSC._npzConstruct">
+<span class="sig-name descname"><span class="pre">_npzConstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">moduleName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC._npzConstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC._npzConstruct" title="Link to this definition"></a></dt>
+<dd><p>This is a wrapper function to construct a VCSC matrix from a .npz file. This still creates a scipy.sparse matrix, but
+allows for a convenient way to read the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>moduleName</strong> (<em>str</em>) – The npz file name</p></li>
+<li><p><strong>secondary</strong> (<em>str</em>) – The secondary format to convert the matrix to a valid form if the npz file is not one with an available constructor. i.e. BSR -&gt; CSC. The default is “csc”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the secondary format is not a valid format.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="PyVSparse.IVCSC.append">
 <span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyVSparse/ivcsc.html#IVCSC.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PyVSparse.IVCSC.append" title="Link to this definition"></a></dt>
 <dd><p>Appends a matrix to the current matrix</p>
