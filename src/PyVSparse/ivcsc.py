@@ -80,7 +80,7 @@ class IVCSC:
         elif isinstance(spmat, str):
             if(spmat[-4:] == ".npz"):
                 self._npzConstruct(spmat)
-            elif(spmat[-5:] == ".ivcsc"):
+            elif(spmat[-6:] == ".ivcsc"):
                 self.read(spmat)
             else:
                 raise TypeError("Input must be a .ivcsc or a scipy.sparse .npz file.")
@@ -508,6 +508,10 @@ class IVCSC:
         :type filename: str
         """
 
+        if filename[-4:] == ".npz":
+            self._npzConstruct(filename)
+            return
+        
         assert filename[-6:] == ".ivcsc", "File must have a .ivcsc extension"
 
         try:

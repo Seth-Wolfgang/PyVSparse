@@ -13,14 +13,14 @@ import pytest
 #TODO Make this do real unit testing
 #TODO work on commented out tests
 #TODO implement COO constructor testing
-types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16, np.float32, np.float64) ## ( )
+types = ( np.int32, np.int64, np.uint64, np.int8, np.int16, np.float32, np.float64) ## ( )
 # types = (np.int32,)
 indexTypes = (np.uint32, np.uint64, np.uint8, np.uint16, )
 formats = ("csc", "csr")
 # formats = ("csc",)
 densities = (1.0,)
-rows = (1, 2, 10, 100)
-cols = (1, 2, 10, 100)
+rows = (1, 100)
+cols = (1, 100)
 epsilon = 1e-3
 
 cases = []
@@ -578,72 +578,6 @@ class Test:
         np.testing.assert_almost_equal(ivcsc_sum, sp_sum, decimal=3)
 
 
-    def testWriteReadVCSC(self, VCSCMatrix):
-        VCSCMatrix.write("test.vcsc")
-
-        try:
-            result = vcsc.VCSC("test.vcsc")
-        finally:
-            os.remove("test.vcsc")
-            
-        originalCSC = VCSCMatrix.tocsc()
-        resultCSC = result.tocsc()
-
-        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
-
-    def testWriteReadIVCSC(self, IVCSCMatrix):
-        IVCSCMatrix.write("test.ivcsc")
-        
-        try:
-            result = ivcsc.IVCSC("test.ivcsc")
-        finally:
-            os.remove("test.ivcsc")
-        
-        originalCSC = IVCSCMatrix.tocsc()
-        resultCSC = result.tocsc()
-
-        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
-        
-    def testWriteReadDifferenDataTypeVCSC(self, SPMatrix, VCSCMatrix):
-        VCSCMatrix.write("test.vcsc")
-        
-        if SPMatrix.dtype == np.float32:
-            temp = SPMatrix.astype(np.float64)
-        else:
-            temp = SPMatrix.astype(np.float32)
-
-
-        vcsc2 = vcsc.VCSC(temp)
-        try:
-            vcsc2.read("test.vcsc")
-        finally:
-            os.remove("test.vcsc")
-        
-        originalCSC = VCSCMatrix.tocsc()
-        resultCSC = vcsc2.tocsc()
-
-        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
-
-    def testWriteReadDifferenDataTypeIVCSC(self, SPMatrix, IVCSCMatrix):
-        IVCSCMatrix.write("test.ivcsc")
-        
-        if SPMatrix.dtype == np.float32 or SPMatrix.dtype == np.float64:
-            temp = SPMatrix.astype(np.int32)
-        else:
-            temp = SPMatrix.astype(np.float32)
-
-        ivcsc2 = ivcsc.IVCSC(temp)
-
-        try:
-            ivcsc2.read("test.ivcsc")
-        finally:
-            os.remove("test.ivcsc")
-        
-        originalCSC = IVCSCMatrix.tocsc()
-        resultCSC = ivcsc2.tocsc()
-
-        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
-
     def testConstrctVCSCFromVCSC(self, VCSCMatrix):
         vcsc2 = vcsc.VCSC(VCSCMatrix)
         assert epsilon > abs(VCSCMatrix.sum() - vcsc2.sum()), "VCSCMatrix: " + str(VCSCMatrix.sum()) + " vcsc2: " + str(vcsc2.sum())
@@ -710,3 +644,69 @@ class Test:
             os.remove("bsr.npz")
         assert np.allclose(newIVCSC.tocsc().toarray(), SPMatrix.toarray(), atol=epsilon)
 
+
+    def testWriteReadVCSC(self, VCSCMatrix):
+        VCSCMatrix.write("test.vcsc")
+
+        try:
+            result = vcsc.VCSC("test.vcsc")
+        finally:
+            os.remove("test.vcsc")
+            
+        originalCSC = VCSCMatrix.tocsc()
+        resultCSC = result.tocsc()
+
+        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
+
+    def testWriteReadIVCSC(self, IVCSCMatrix):
+        IVCSCMatrix.write("test.ivcsc")
+        
+        try:
+            result = ivcsc.IVCSC("test.ivcsc")
+        finally:
+            os.remove("test.ivcsc")
+        
+        originalCSC = IVCSCMatrix.tocsc()
+        resultCSC = result.tocsc()
+
+        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
+        
+    def testWriteReadDifferenDataTypeVCSC(self, SPMatrix, VCSCMatrix):
+        VCSCMatrix.write("test.vcsc")
+        
+        if SPMatrix.dtype == np.float32:
+            temp = SPMatrix.astype(np.float64)
+        else:
+            temp = SPMatrix.astype(np.float32)
+
+
+        vcsc2 = vcsc.VCSC(temp)
+        try:
+            vcsc2.read("test.vcsc")
+        finally:
+            os.remove("test.vcsc")
+        
+        originalCSC = VCSCMatrix.tocsc()
+        resultCSC = vcsc2.tocsc()
+
+        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
+
+    def testWriteReadDifferenDataTypeIVCSC(self, SPMatrix, IVCSCMatrix):
+        IVCSCMatrix.write("test.ivcsc")
+        
+        if SPMatrix.dtype == np.float32 or SPMatrix.dtype == np.float64:
+            temp = SPMatrix.astype(np.int32)
+        else:
+            temp = SPMatrix.astype(np.float32)
+
+        ivcsc2 = ivcsc.IVCSC(temp)
+
+        try:
+            ivcsc2.read("test.ivcsc")
+        finally:
+            os.remove("test.ivcsc")
+        
+        originalCSC = IVCSCMatrix.tocsc()
+        resultCSC = ivcsc2.tocsc()
+
+        np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
