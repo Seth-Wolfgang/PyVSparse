@@ -103,7 +103,12 @@ class VCSC:
             else:
                 raise TypeError("Input matrix does not have a valid format!")
         elif isinstance(spmat, str):
-            self.read(spmat)
+            if(spmat[-4:] == ".npz"):
+                self._npzConstruct(spmat)
+            elif(spmat[-5:] == ".vcsc"):
+                self.read(spmat)
+            else:
+                raise TypeError("Input must be a .vcsc or a scipy.sparse .npz file.")
         else:
             raise TypeError("Input must be a filename or a scipy.sparse matrix")
 
@@ -627,10 +632,16 @@ class VCSC:
         Function to read a VCSC formatted matrix from a file.
         This function should automatically determine the template type of the matrix.
         
+        This can also read a .npz file, but it must be of a CSC, CSR, or COO format.
+
         :param filename: The name of the file to read from
         :type filename: str
         """
 
+        if filename[-4:] == ".npz":
+            self._npzConstruct(filename)
+            return
+        
         assert filename[-5:] == ".vcsc", "File must have a .vcsc extension"
 
         try:
@@ -696,7 +707,55 @@ class VCSC:
         self.innerSize = self.backend.innerSize
         self.outerSize = self.backend.outerSize
         self.bytes = self.backend.byteSize
+    
+    
+    def _npzConstruct(self, moduleName: str, secondary: str = "csc"): 
 
+        """
+        This is a wrapper function to construct a VCSC matrix from a .npz file. This still creates a scipy.sparse matrix, but
+        allows for a convenient way to read the file.
+
+        :param moduleName: The npz file name
+        :type moduleName: str
+        :param secondary: The secondary format to convert the matrix to a valid form if the npz file is not one with an available constructor. i.e. BSR -> CSC. The default is "csc"
+        :type secondary: str
+        :raises TypeError: If the secondary format is not a valid format.
+        """
+
+        tempMat = sp.sparse.load_npz(moduleName)
+        self.dtype = tempMat.dtype
+        secondary = secondary.lower()
+
+        # Secondary format is used to convert the input matrix to a different format
+        # If a BSR matrix is writtent to the npz file, then the secondary format can be 
+        # used to convert the matrix to a valid format.
+        if tempMat.format.lower() in ("bsr", "dia", "lil", "dok"):
+            if secondary == "csc":
+                tempMat = tempMat.tocsc()
+            elif secondary == "csr":
+                tempMat = tempMat.tocsr()
+            elif secondary == "coo":
+                tempMat = tempMat.tocoo()
+            else:
+                raise TypeError("Invalid secondary format. Use CSC, CSR, or COO.")
+
+        if(tempMat.format == "csc"):
+            self.order = "Col"
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexType)) + "_" + str(self.order)
+            self._CSconstruct(moduleName, tempMat)
+
+        elif(tempMat.format == "csr"):
+            self.order = "Row"
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexType)) + "_" + str(self.order)
+            self._CSconstruct(moduleName, tempMat)
+        elif(tempMat.format == "coo"):
+            moduleName = "PyVSparse._PyVSparse._VCSC._" + str(self.dtype) + "_" + str(np.dtype(self.indexType)) + "_" + str(self.order)
+            self._COOconstruct(moduleName, tempMat)
+        else:
+            raise TypeError("Input matrix does not have a valid format! Use CSC, CSR, or COO.")
+        
+
+        
     def _CSconstruct(self, moduleName: str, spmat):
         """
         Private helper function to construct a VCSC matrix from a scipy.sparse CSC or CSR matrix.

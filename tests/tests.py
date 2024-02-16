@@ -675,3 +675,38 @@ class Test:
         for x in range(SPMatrix.shape[0]):
             for y in range(SPMatrix.shape[1]):
                 assert IVCSCMatrix[x, y] == SPMatrix[x, y]
+
+    def testReadFromNPZVCSC(self, SPMatrix):
+        try:
+            sp.sparse.save_npz("test.npz", SPMatrix)
+            newVCSC = vcsc.VCSC("test.npz")
+        finally:
+            os.remove("test.npz")
+        assert np.allclose(newVCSC.tocsc().toarray(), SPMatrix.toarray(), atol=epsilon)
+
+    def testReadFromNPZIVCSC(self, SPMatrix):
+        try:
+            sp.sparse.save_npz("test.npz", SPMatrix)
+            newIVCSC = ivcsc.IVCSC("test.npz")
+        finally:
+            os.remove("test.npz")
+        assert np.allclose(newIVCSC.tocsc().toarray(), SPMatrix.toarray(), atol=epsilon)
+
+    def testReadFromNPZ_bad_format_VCSC(self, SPMatrix):
+        try:
+            bsrMat = SPMatrix.tobsr()
+            sp.sparse.save_npz("bsr.npz", bsrMat)
+            newVCSC = vcsc.VCSC("bsr.npz")
+        finally:
+            os.remove("bsr.npz")
+        assert np.allclose(newVCSC.tocsc().toarray(), SPMatrix.toarray(), atol=epsilon)
+
+    def testReadFromNPZ_bad_format_IVCSC(self, SPMatrix):
+        try:
+            bsrMat = SPMatrix.tobsr()
+            sp.sparse.save_npz("bsr.npz", bsrMat)
+            newIVCSC = ivcsc.IVCSC("bsr.npz")
+        finally:
+            os.remove("bsr.npz")
+        assert np.allclose(newIVCSC.tocsc().toarray(), SPMatrix.toarray(), atol=epsilon)
+

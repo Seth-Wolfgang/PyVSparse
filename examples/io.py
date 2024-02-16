@@ -31,3 +31,21 @@ ivcsc.write('ivcsc_mat')
 
 ivcsc2 = PyVSparse.IVCSC('ivcsc_mat.ivcsc')
 print(ivcsc2 == ivcsc2) # True
+
+
+# PyVSparse also supports reading/writing files in the .npz format.
+# However, this is essentially a wrapper around scipy's save_npz and load_npz functions.
+import os
+try:
+    sp.sparse.save_npz("test.npz", csc_mat)
+    newVCSC = PyVSparse.VCSC("test.npz")
+finally:
+    os.remove("test.npz")
+print(newVCSC.tocsc().toarray() == csc_mat.toarray()) # True
+
+try:
+    sp.sparse.save_npz("test.npz", csc_mat)
+    newIVCSC = PyVSparse.IVCSC("test.npz")
+finally:
+    os.remove("test.npz")
+print(newIVCSC.tocsc().toarray() == csc_mat.toarray()) # true

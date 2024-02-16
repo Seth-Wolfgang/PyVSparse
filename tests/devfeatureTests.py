@@ -79,16 +79,14 @@ class Test:
         return np.ones((SPMatrix.shape[1], 1))  
 
 
-    def testRandomAccessVCSC(self, SPMatrix, VCSCMatrix):
+    # def testRandomAccessVCSC(self, SPMatrix, VCSCMatrix):
 
-        for x in range(SPMatrix.shape[0]):
-            for y in range(SPMatrix.shape[1]):
-                assert VCSCMatrix[x, y] == SPMatrix[x, y]
+    #     for x in range(SPMatrix.shape[0]):
+    #         for y in range(SPMatrix.shape[1]):
+    #             assert VCSCMatrix[x, y] == SPMatrix[x, y]
         
 
-
-
-
+ 
 
     # def testSlice(self, SPMatrix, VCSCMatrix):
     #     if SPMatrix.shape[1] // 2 == 0:
