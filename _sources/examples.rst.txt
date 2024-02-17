@@ -7,6 +7,8 @@ Most of the syntax in PyVSparse should be familiar to users of `scipy.sparse`.
 However, some syntax is a little different. Below are a list of examples to 
 demonstrate syntax and capabilities of PyVSparse.
 
+PyVSparse uses OpenMP to parallelize some operations, such as the constructors.
+
 .. toctree::
     :caption: Examples
 
