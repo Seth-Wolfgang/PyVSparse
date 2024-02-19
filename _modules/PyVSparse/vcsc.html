@@ -212,7 +212,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nnz</span> <span class="o">=</span> <span class="n">spmat</span><span class="o">.</span><span class="n">nnz</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">innerSize</span> <span class="o">=</span> <span class="n">spmat</span><span class="o">.</span><span class="n">innerSize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">outerSize</span> <span class="o">=</span> <span class="n">spmat</span><span class="o">.</span><span class="n">outerSize</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="n">spmat</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="n">spmat</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span></div>
 
 
     <span class="k">def</span> <span class="nf">fromIVCSC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spmat</span><span class="p">:</span> <span class="n">PyVSparse</span><span class="o">.</span><span class="n">IVCSC</span><span class="p">):</span>
@@ -348,7 +348,7 @@
 <span class="sd">        :rtype: np.uint64</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span></div>
 
     
 <div class="viewcode-block" id="VCSC.norm">
@@ -451,13 +451,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">innerSize</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outerSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outerSize</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">innerSize</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="n">temp</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
         <span class="n">temp</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">temp</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span>
         <span class="n">temp</span><span class="o">.</span><span class="n">innerSize</span><span class="p">,</span> <span class="n">temp</span><span class="o">.</span><span class="n">outerSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outerSize</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">innerSize</span>
-        <span class="n">temp</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span>
+        <span class="n">temp</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">temp</span></div>
 
         
@@ -860,7 +860,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nnz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">nonZeros</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">innerSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">innerSize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">outerSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">outerSize</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span></div>
 
     
     
@@ -942,7 +942,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">outerSize</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">moduleName</span><span class="p">))(</span><span class="n">spmat</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="VCSC._COOconstruct">
@@ -979,7 +979,7 @@
             <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>    
 
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">moduleName</span><span class="p">))(</span><span class="n">coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">spmat</span><span class="o">.</span><span class="n">nnz</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">byteSize</span><span class="p">()</span></div>
 </div>
 
 </pre></div>
