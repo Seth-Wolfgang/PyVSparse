@@ -130,7 +130,7 @@ class VCSC:
         self.nnz = spmat.nnz
         self.innerSize = spmat.innerSize
         self.outerSize = spmat.outerSize
-        self.bytes = spmat.byteSize()
+        self.bytes: np.uint64 = spmat.byteSize()
 
     def fromIVCSC(self, spmat: PyVSparse.IVCSC):
         raise NotImplementedError
@@ -251,7 +251,7 @@ class VCSC:
         :rtype: np.uint64
         """
 
-        return self.backend.byteSize
+        return self.backend.byteSize()
     
     def norm(self) -> np.double: # TODO add more norms
         
@@ -339,13 +339,13 @@ class VCSC:
             self.backend = self.backend.transpose()
             self.rows, self.cols = self.cols, self.rows
             self.innerSize, self.outerSize = self.outerSize, self.innerSize
-            self.bytes = self.backend.byteSize
+            self.bytes: np.uint64 = self.backend.byteSize()
             return self
         temp = self
         temp.backend = self.backend.transpose()
         temp.rows, temp.cols = self.cols, self.rows
         temp.innerSize, temp.outerSize = self.outerSize, self.innerSize
-        temp.bytes = temp.backend.byteSize
+        temp.bytes = temp.backend.byteSize()
         return temp
         
     
@@ -706,7 +706,7 @@ class VCSC:
         self.nnz = self.backend.nonZeros()
         self.innerSize = self.backend.innerSize
         self.outerSize = self.backend.outerSize
-        self.bytes = self.backend.byteSize
+        self.bytes: np.uint64 = self.backend.byteSize()
     
     
     def _npzConstruct(self, moduleName: str, secondary: str = "csc"): 
@@ -782,7 +782,7 @@ class VCSC:
             self.outerSize: np.uint32 = self.rows
 
         self.backend = eval(str(moduleName))(spmat)
-        self.bytes: np.uint64 = self.backend.byteSize
+        self.bytes: np.uint64 = self.backend.byteSize()
 
     def _COOconstruct(self, moduleName: str, spmat): 
 
@@ -816,4 +816,4 @@ class VCSC:
             coords.append((r, c, v))    
 
         self.backend = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
-        self.bytes: np.uint64 = self.backend.byteSize
+        self.bytes: np.uint64 = self.backend.byteSize()

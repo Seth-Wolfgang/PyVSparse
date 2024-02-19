@@ -710,3 +710,9 @@ class Test:
         resultCSC = ivcsc2.tocsc()
 
         np.testing.assert_array_almost_equal(originalCSC.toarray(), resultCSC.toarray(), decimal=3, verbose=True)
+
+    def testByteSizeTypeVCSC(self, VCSCMatrix):
+        assert not isinstance(VCSCMatrix.bytes, str)
+
+    def testByteSizeTypeIVCSC(self, IVCSCMatrix):
+        assert not isinstance(IVCSCMatrix.bytes, str)

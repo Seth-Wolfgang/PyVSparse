@@ -86,7 +86,7 @@ class Test:
     #             assert VCSCMatrix[x, y] == SPMatrix[x, y]
         
 
- 
+
 
 
     # def testSlice(self, SPMatrix, VCSCMatrix):
