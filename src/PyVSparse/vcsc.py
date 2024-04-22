@@ -8,7 +8,6 @@ import PyVSparse
 class VCSC:
 
     def __init__(self, spmat, indexType = np.uint32, order: str = "col"):
-
         """
         Value-Compressed Sparse Column is a read-only sparse matrix format for redundant data without compromising speed. 
         See README.md for more information. 
@@ -112,6 +111,8 @@ class VCSC:
         else:
             raise TypeError("Input must be a filename or a scipy.sparse matrix")
 
+    __numpy_ufunc__ = None # Numpy up to 13.0
+    __array_ufunc__ = None # Numpy 13.0 and above
 
     def fromVCSC(self, spmat: VCSC):
 
@@ -360,6 +361,15 @@ class VCSC:
 
         return (self.rows, self.cols)
     
+    def __iter__(self, index):
+        """
+        Returns an iterator for the matrix
+
+        :return: An iterator for the matrix
+        :rtype: any
+        """
+        return self.backend.__iter__(index)
+
     def __imul__(self, other) -> VCSC: 
 
         """
@@ -384,28 +394,137 @@ class VCSC:
         """
         Multiplication of the matrix by a:
         - scalar
-        - dense numpy matrix or vector
 
         If the input is a scalar, then the matrix returned will be a VCSC matrix.
-        Else, the matrix returned will be a dense numpy matrix or vector.
 
         :param other: The value or object to multiply the matrix by
-        :type other: Union[int, float, np.ndarray]
+        :type other: Union[int, float]
         :return: The matrix multiplied by the input
-        :rtype: union[VCSC, np.ndarray]
-        :raises TypeError: If the input is not a scalar or numpy array
+        :rtype: union[VCSC]
+        :raises TypeError: If the input is not a scalar
         """
 
-        if(isinstance(other, np.ndarray)): # Dense numpy matrix or vector
-            temp: np.ndarray = self.backend * other
+        if(isinstance(other, int) or isinstance(other, float)): # Scalar
+            temp = self
+            temp.backend = self.backend * other
             return temp
-        elif(isinstance(other, int) or isinstance(other, float)): # Scalar
-            result = self
-            result.backend = self.backend * other
-            return result
+        
+        elif(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
+            temp: np.ndarray = self.backend.coeffMul(other)
+            return temp
         else:
             raise TypeError("Cannot multiply VCSC by " + str(type(other)))
+
+
+    def __matmul__(self, other) -> np.ndarray:
+        """
+        Multiplication of the matrix by a:
+        - dense matrix
+ 
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to multiply the matrix by
+        :type other: Union[np.ndarray]
+        :return: The matrix multiplied by the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a numpy array
+        
+        """
+        if(isinstance(other, np.ndarray)): # Dense numpy matrix or vector
+            temp: np.ndarray = self.backend @ other
+            return temp
+        else:
+            raise TypeError("Cannot multiply VCSC by " + str(type(other)))
+        
+    def __rmul__(self, other) -> VCSC:
+        return self.__mul__(other)
+
+    def __rmatmul__(self, other) -> np.ndarray:
+        return self.__matmul__(other)
+
+    def __radd__(self, other: np.ndarray):
+        """
+        Coefficient-wise addition of the matrix by a:
+        - dense matrix
+
+        Becuase VCSC is read-only, the matrix returned will be a dense numpy matrix or vector.
+        This is a right addition operation: A + VCSC
+
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to add to the matrix
+        :type other: Union[np.ndarray, int, float]
+        :return: The matrix added to the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a numpy array, int, or float
+        """
+
+        if(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
             
+            temp: np.ndarray = self.backend.coeffAdd(other)
+            return temp
+        else:
+            raise TypeError("Cannot add VCSC to " + str(type(other)))
+
+    def __rsub__(self, other):
+        """
+        Coefficient-wise subtraction of the matrix by a:
+        - dense matrix
+
+        Becuase VCSC is read-only, the matrix returned will be a dense numpy matrix or vector.
+        This is a right subtraction operation: A - VCSC
+
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to subtract from the matrix
+        :type other: Union[np.ndarray, int, float]
+        :return: The matrix subtracted from the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a numpy array, int, or float
+        """
+
+        
+        if(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
+        
+            temp: np.ndarray = self.backend.coeffSub(other)
+            return temp
+        else:
+            raise TypeError("Cannot subtract VCSC from " + str(type(other)))
+        
+    def __rtruediv__(self, other):
+        """
+        Coefficient-wise division of the matrix by a:
+        - Dense matrix
+
+        Becuase VCSC is read-only, the matrix returned will be a dense numpy matrix or vector.
+        This is a right division operation: A / VCSC
+
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to divide the matrix by
+        :type other: Union[int, float]
+        :return: The matrix divided by the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a scalar
+        """
+
+        if(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
+            
+            temp: np.ndarray = self.backend.coeffDiv(other)
+            return temp
+        else:
+            raise TypeError("Cannot divide VCSC by " + str(type(other)))
+        
+
+
     def __eq__(self, other: VCSC) -> bool:
 
         """

@@ -8,7 +8,6 @@ import PyVSparse
 
 class IVCSC:
     def __init__(self, spmat, order: str = "col"): # add scipySparseMat: scipyFormat as type hint
-
         """
         Index-and Value-Compressed Sparse Column is a read-only sparse matrix format optimzed for redundant data.
         See README.md for more information. 
@@ -87,6 +86,9 @@ class IVCSC:
         else:
             raise TypeError("Input matrix must be a string or a scipy.sparse matrix")
         
+    __numpy_ufunc__ = None # Numpy up to 13.0
+    __array_ufunc__ = None # Numpy 13.0 and above
+
     def fromIVCSC(self, ivcsc: IVCSC):
 
         """
@@ -327,8 +329,8 @@ class IVCSC:
         :rtype: Tuple[np.uint32, np.uint32]
         """
         
-        return (self.rows, self.cols)
-    
+        return (self.rows, self.cols)    
+
     def __imul__(self, other) -> IVCSC:
 
         """
@@ -348,32 +350,140 @@ class IVCSC:
             
         return self
     
-    def __mul__(self, other: np.ndarray):
+    def __mul__(self, other):
+
         """
         Multiplication of the matrix by a:
         - scalar
-        - dense numpy matrix or vector
 
         If the input is a scalar, then the matrix returned will be a IVCSC matrix.
-        Else, the matrix returned will be a dense numpy matrix or vector.
 
         :param other: The value or object to multiply the matrix by
-        :type other: Union[int, float, np.ndarray]
+        :type other: Union[int, float]
         :return: The matrix multiplied by the input
-        :rtype: union[IVCSC, np.ndarray]
-        :raises TypeError: If the input is not a scalar or numpy array
+        :rtype: union[IVCSC]
+        :raises TypeError: If the input is not a scalar
+        """
+
+        if(isinstance(other, int) or isinstance(other, float)): # Scalar
+            result = self
+            result.backend = self.backend * other
+            return result
+        elif(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
+            
+            temp = self.backend.coeffMul(other)
+            return temp
+        else:
+            raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
+
+
+    def __matmul__(self, other) -> np.ndarray:
+        """
+        Multiplication of the matrix by a:
+        - dense matrix
+ 
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to multiply the matrix by
+        :type other: Union[np.ndarray]
+        :return: The matrix multiplied by the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a numpy array
+        
+        """
+        if(isinstance(other, np.ndarray)): # Dense numpy matrix or vector
+            temp: np.ndarray = self.backend @ other
+            return temp
+        else:
+            raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
+
+    def __rmul__(self, other) -> IVCSC:
+        return self.__mul__(other)
+
+    def __rmatmul__(self, other) -> np.ndarray:
+        return self.__matmul__(other)
+
+    def __radd__(self, other):
+        
+        """
+        Coefficient-wise addition of the matrix by a:
+        - dense matrix
+
+        Becuase IVCSC is read-only, the matrix returned will be a dense numpy matrix or vector.
+        This is a right addition operation: A + IVCSC
+
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to add to the matrix
+        :type other: Union[np.ndarray, int, float]
+        :return: The matrix added to the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a numpy array, int, or float
+        """
+     
+        if(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")       
+            temp: np.ndarray = self.backend.coeffAdd(other)
+            return temp
+        else:
+            raise TypeError("Cannot add IVCSC to " + str(type(other)))
+
+    def __rsub__(self, other):
+        """
+        Coefficient-wise subtraction of the matrix by a:
+        - dense matrix
+
+        Becuase IVCSC is read-only, the matrix returned will be a dense numpy matrix or vector.
+        This is a right subtraction operation: A - IVCSC
+
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to subtract from the matrix
+        :type other: Union[np.ndarray, int, float]
+        :return: The matrix subtracted from the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a numpy array, int, or float
         """
 
         if(isinstance(other, np.ndarray)):
-            temp = self.backend.__mul__(other)
-            return temp
-        elif(isinstance(other, int) or isinstance(other, float)):
-            result = self
-            result.backend = self.backend.__mul__(other)
-            return result
-        else:
-            raise TypeError("Cannot multiply IVCSC by " + str(type(other)))
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
             
+            temp: np.ndarray = self.backend.coeffSub(other)
+            return temp
+        else:
+            raise TypeError("Cannot subtract IVCSC from " + str(type(other)))
+        
+    def __rtruediv__(self, other):
+        """
+        Coefficient-wise division of the matrix by a:
+        - Dense matrix
+
+        Becuase IVCSC is read-only, the matrix returned will be a dense numpy matrix or vector.
+        This is a right division operation: A / IVCSC
+
+        The matrix returned will be a dense numpy matrix or vector.
+
+        :param other: The object to divide the matrix by
+        :type other: Union[int, float]
+        :return: The matrix divided by the input
+        :rtype: union[np.ndarray]
+        :raises TypeError: If the input is not a scalar
+        """
+
+        if(isinstance(other, np.ndarray)):
+            if other.shape[0] != self.rows and other.shape[1] != self.cols:
+                raise ValueError("Matrix dimensions do not match")
+            
+            temp: np.ndarray = self.backend.coeffDiv(other)
+            return temp
+        else:
+            raise TypeError("Cannot divide IVCSC by " + str(type(other)))
+        
+
     def __eq__(self, other) -> bool:
         """
         Compares the matrix to another IVCSC matrix

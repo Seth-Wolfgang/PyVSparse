@@ -43,7 +43,7 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("outerSize", &IVSparse::IVCSC<T, isColMajor>::outerSize, py::return_value_policy::copy);
     mat.def("shape", [](IVSparse::IVCSC<T, isColMajor>& self) {
         return std::make_tuple(self.rows(), self.cols());
-            }, py::return_value_policy::copy);
+    }, py::return_value_policy::copy);
     mat.def("nonZeros", &IVSparse::IVCSC<T, isColMajor>::nonZeros, py::return_value_policy::copy);
     mat.def("byteSize", &IVSparse::IVCSC<T, isColMajor>::byteSize, py::return_value_policy::copy);
     mat.def("write", &IVSparse::IVCSC<T, isColMajor>::write, py::arg("filename"));
@@ -51,12 +51,12 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
     mat.def("print", &IVSparse::IVCSC<T, isColMajor>::print);
     mat.def("isColumnMajor", &IVSparse::IVCSC<T, isColMajor>::isColumnMajor, py::return_value_policy::copy);
     mat.def("coeff", &IVSparse::IVCSC<T, isColMajor>::coeff, py::return_value_policy::copy, "Sets value at run of coefficient", py::arg("row").none(false), py::arg("col").none(false));
-    
+
     mat.def("dtype", [](IVSparse::IVCSC<T, isColMajor>& self) {
         return returnTypeName<T>();
-            }, py::return_value_policy::copy);
+    }, py::return_value_policy::copy);
 
-    
+
     // mat.def("outerSum", [](IVSparse::IVCSC<T, isColMajor>& self){
 
     //     Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = Eigen::Matrix<T, -1, -1>::Zero(self.outerSize(), 1);   
@@ -89,7 +89,7 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
         Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.colSum();
 
         return eigenTemp;
-            }, py::return_value_policy::move);
+    }, py::return_value_policy::move);
 
     // mat.def("innerSum", &IVSparse::IVCSC<T, isColMajor>::innerSum, py::return_value_policy::copy);
     mat.def("rowSum", [](IVSparse::IVCSC<T, isColMajor>& self) {
@@ -97,14 +97,14 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
         Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.rowSum();
         return eigenTemp;
 
-            }, py::return_value_policy::move);
+    }, py::return_value_policy::move);
 
     mat.def("max", [](IVSparse::IVCSC<T, isColMajor>& self, int axis) {
         Eigen::Matrix<T, -1, -1, Eigen::RowMajor> eigenTemp = self.max(axis);
 
         return eigenTemp;
 
-            }, py::arg("axis"), py::return_value_policy::move);
+    }, py::arg("axis"), py::return_value_policy::move);
 
 
     mat.def("min", [](IVSparse::IVCSC<T, isColMajor>& self, int axis) {
@@ -112,17 +112,17 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
 
         return eigenTemp;
 
-            }, py::arg("axis"), py::return_value_policy::move);
+    }, py::arg("axis"), py::return_value_policy::move);
 
     mat.def("max", [](IVSparse::IVCSC<T, isColMajor>& self) {
         return self.max();
 
-            }, py::return_value_policy::move);
+    }, py::return_value_policy::move);
 
     mat.def("min", [](IVSparse::IVCSC<T, isColMajor>& self) {
         return self.min();;
 
-            }, py::return_value_policy::move);
+    }, py::return_value_policy::move);
 
 
 
@@ -143,9 +143,10 @@ void declareIVCSCFuncs(py::module& m, py::class_<IVSparse::IVCSC<T, isColMajor>>
         IVSparse::IVCSC<T, isColMajor> temp = self.slice(start, end);
         return temp;
 
-            }, py::arg("start"), py::arg("end"), py::return_value_policy::copy, py::keep_alive<1, 2>());
+    }, py::arg("start"), py::arg("end"), py::return_value_policy::copy, py::keep_alive<1, 2>());
     // mat.def("vectorPointer", &IVSparse::IVCSC<T, isColMajor>::vectorPointer, py::return_value_policy::reference);
     // mat.def("getVectorByteSize", &IVSparse::IVCSC<T, isColMajor>::getVectorByteSize, py::return_value_policy::copy);
+
 }
 
 template <typename T, bool isColMajor>
@@ -165,60 +166,60 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
         ss << self;
         return ss.str();
 
-            }, py::is_operator(), py::return_value_policy::move);
+    }, py::is_operator(), py::return_value_policy::move);
     mat.def("__str__", [](IVSparse::IVCSC<T, isColMajor>& self) {
 
         std::stringstream ss;
         ss << self;
         return ss.str();
 
-            }, py::is_operator(), py::return_value_policy::move);
+    }, py::is_operator(), py::return_value_policy::move);
     mat.def("__copy__", [](const IVSparse::IVCSC<T, isColMajor>& self) {
         return IVSparse::IVCSC<T, isColMajor>(self);
-            }, py::return_value_policy::copy);
+    }, py::return_value_policy::copy);
     mat.def("__deepcopy__", [](const IVSparse::IVCSC<T, isColMajor>& self) {                  //TODO: NEED TO CHECK;
         return IVSparse::IVCSC<T, isColMajor>(self);
-            }, py::return_value_policy::copy);
+    }, py::return_value_policy::copy);
     mat.def("copy", [](const IVSparse::IVCSC<T, isColMajor>& self) {
         return IVSparse::IVCSC<T, isColMajor>(self);
-            }, py::return_value_policy::copy);
+    }, py::return_value_policy::copy);
     mat.def("__eq__", [](const IVSparse::IVCSC<T, isColMajor>& self, const IVSparse::IVCSC<T, isColMajor>& other) {
         return self == other;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__ne__", [](const IVSparse::IVCSC<T, isColMajor>& self, const IVSparse::IVCSC<T, isColMajor>& other) {
         return !(self == other);
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, int8_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, uint8_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, int16_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, uint16_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, int32_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, uint32_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, int64_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, uint64_t a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, double a) {
         return self * a;
-            }, py::is_operator());
+    }, py::is_operator());
     mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, float a) {
         return self * a;
-            }, py::is_operator());
-    mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, 1>> vec) {
+    }, py::is_operator());
+    mat.def("__matmul__", [](IVSparse::IVCSC<T, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, 1>> vec) {
 
         #ifdef IVSPARSE_DEBUG
         // check that the vector is the correct size
@@ -236,12 +237,12 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
             }
         }
         return eigenTemp;
-            }, py::is_operator(),
-                py::keep_alive<1, 2>(),
-                py::return_value_policy::copy);
+    }, py::is_operator(),
+        py::keep_alive<1, 2>(),
+        py::return_value_policy::copy);
 
 
-    mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
+    mat.def("__matmul__", [](IVSparse::IVCSC<T, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
         // const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> b = a;
         #ifdef IVSPARSE_DEBUG
         // check that the matrix is the correct size
@@ -250,7 +251,7 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
                 "The left matrix must have the same # of rows as columns in the right "
                 "matrix!");
         #endif
-        Eigen::Matrix<T, -1, -1> newMatrix = Eigen::Matrix<T, -1, -1>::Zero(mat.cols(), self.rows());
+        Eigen::Matrix<T, -1, -1> newMatrix = Eigen::Matrix<T, -1, -1>::Zero(self.outerSize(), self.rows());
         Eigen::Matrix<T, -1, -1> matTranspose = mat.transpose();
         // Fix Parallelism issue (race condition because of partial sums and
         // orientation of Sparse * Dense)
@@ -266,9 +267,9 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
         }
         newMatrix.transposeInPlace();
         return newMatrix;
-            }, py::is_operator(),
-                py::keep_alive<1, 2>(),
-                py::return_value_policy::copy);
+    }, py::is_operator(),
+        py::keep_alive<1, 2>(),
+        py::return_value_policy::copy);
     // mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, Eigen::Ref<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a) {
     //     return self * a;
     //         }, py::is_operator(),
@@ -276,6 +277,76 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
     //             py::return_value_policy::move); 
     mat.def("__getitem__", [](IVSparse::IVCSC<T, isColMajor>& self, std::tuple<size_t, size_t> index) {
         return self(std::get<0>(index), std::get<1>(index));
-            }, py::return_value_policy::copy);
+    }, py::return_value_policy::copy);
+
+
+    mat.def("__iter__", [](IVSparse::IVCSC<T, isColMajor>& self, uint32_t outerIndex) {
+        return typename IVSparse::IVCSC<T, isColMajor>::InnerIterator(self, outerIndex);
+    }, py::keep_alive<0, 1>());
+
+
+    mat.def("coeffAdd", [](IVSparse::IVCSC<T, isColMajor>& self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
+
+        Eigen::Matrix<T, -1, -1, !isColMajor> result(mat);
+
+            #ifdef IVSPARSE_HAS_OPENMP
+            #pragma omp parallel for
+            #endif
+            for (uint32_t i = 0; i < self.outerSize(); ++i) {
+                for (typename IVSparse::IVCSC<T, isColMajor>::InnerIterator it(self, i); it; ++it) {
+                    result(it.row(), it.col()) += it.value();
+                }
+            }
+        return result;
+
+    }, py::return_value_policy::take_ownership);
+
+    mat.def("coeffSub", [](IVSparse::IVCSC<T, isColMajor>& self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
+
+        Eigen::Matrix<T, -1, -1, !isColMajor> result(mat);
+
+            #ifdef IVSPARSE_HAS_OPENMP
+            #pragma omp parallel for
+            #endif
+            for (uint32_t i = 0; i < self.outerSize(); ++i) {
+                for (typename IVSparse::IVCSC<T, isColMajor>::InnerIterator it(self, i); it; ++it) {
+                    result(it.row(), it.col()) -= it.value();
+                }
+            }
+
+        return result;
+    }, py::return_value_policy::take_ownership);
+
+    mat.def("coeffMul", [](IVSparse::IVCSC<T, isColMajor>& self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
+        Eigen::Matrix<T, -1, -1, !isColMajor> result(mat);
+
+            #ifdef IVSPARSE_HAS_OPENMP
+            #pragma omp parallel for
+            #endif
+            for (uint32_t i = 0; i < self.outerSize(); ++i) {
+                for (typename IVSparse::IVCSC<T, isColMajor>::InnerIterator it(self, i); it; ++it) {
+                    result(it.row(), it.col()) *= it.value();
+                }
+            }
+
+        return result;
+    }, py::return_value_policy::take_ownership);
+
+    mat.def("coeffDiv", [](IVSparse::IVCSC<T, isColMajor>& self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
+
+        Eigen::Matrix<T, -1, -1, !isColMajor> result(mat);
+
+            #ifdef IVSPARSE_HAS_OPENMP
+            #pragma omp parallel for
+            #endif
+            for (uint32_t i = 0; i < self.outerSize(); ++i) {
+                for (typename IVSparse::IVCSC<T, isColMajor>::InnerIterator it(self, i); it; ++it) {
+                    result(it.row(), it.col()) /= it.value();
+                }
+            }
+            
+        return result;
+    }, py::return_value_policy::take_ownership);
+
 
 }

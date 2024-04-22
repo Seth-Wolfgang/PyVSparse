@@ -16,7 +16,7 @@ ignore_missing_imports = true
 
 [project]
 name = "PyVSparse"
-version = "0.4.4"
+version = "0.5.0"
 authors = [
     {name = "Seth Wolfgang", email = "wolfgangseth@gmail.com"}
 ]

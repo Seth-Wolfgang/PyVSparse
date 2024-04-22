@@ -1,12 +1,11 @@
 
-from curses.ascii import SP
 import os
 import random
 import sys
 from unittest import result
 
 from matplotlib.pylab import f
-from netaddr import P
+from matplotlib.pyplot import isinteractive
 import PyVSparse.ivcsc as ivcsc
 import PyVSparse.vcsc as vcsc
 import scipy as sp
@@ -18,8 +17,7 @@ import pytest
 #TODO work on commented out tests
 #TODO implement COO constructor testing
 types = ( np.int32, np.uint32, np.int64, np.uint64, np.int8, np.uint8, np.int16, np.uint16 , np.float32, np.float64)
-
-indexTypes = (np.uint8, np.uint16, np.uint32, np.uint64)
+indexTypes = (np.uint32, np.uint8, np.uint16, np.uint64)
 formats = ("csc", "csr")
 # formats = ("csc",)
 # formats = ("csr",)
@@ -79,15 +77,96 @@ class Test:
         return np.ones((SPMatrix.shape[1], 1))  
 
 
-    # def testRandomAccessVCSC(self, SPMatrix, VCSCMatrix):
+    def testDenseAddVCSC(self, SPMatrix, VCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+        array = SPMatrix.toarray()
+        if not isinstance(array, np.ndarray):
+            exit(1)
+        result = array + VCSCMatrix
+        assert np.allclose(result, SPMatrix.toarray() + VCSCMatrix.tocsc().toarray(), atol=epsilon)
 
-    #     for x in range(SPMatrix.shape[0]):
-    #         for y in range(SPMatrix.shape[1]):
-    #             assert VCSCMatrix[x, y] == SPMatrix[x, y]
+    def testDenseAddIVCSC(self, SPMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
         
+        result = SPMatrix.toarray() + IVCSCMatrix
+        assert np.allclose(result, SPMatrix.toarray() + IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    def testDenseSubVCSC(self, SPMatrix, VCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+    
+        result = SPMatrix.toarray() - VCSCMatrix
+        assert np.allclose(result, SPMatrix.toarray() - VCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    def testDenseSubIVCSC(self, SPMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+        result = SPMatrix.toarray() - IVCSCMatrix
+        assert np.allclose(result, SPMatrix.toarray() - IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    def testDenseMulVCSC(self, SPMatrix, VCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+        result = SPMatrix.toarray() * VCSCMatrix
+        assert np.allclose(result, SPMatrix.toarray() * VCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    def testDenseMulIVCSC(self, SPMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+        result = SPMatrix.toarray() * IVCSCMatrix
+        assert np.allclose(result, SPMatrix.toarray() * IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    def testDenseDivVCSC(self, SPMatrix, VCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+
+        result = SPMatrix.toarray() / VCSCMatrix
+
+        assert np.allclose(result.sum(), VCSCMatrix.nnz, atol=epsilon)
+
+    def testDenseDivIVCSC(self, SPMatrix, IVCSCMatrix):
+        if SPMatrix.shape[1] == 1 and SPMatrix.shape[0] == 1:
+            pytest.skip("Skipping test for 0 col matrix")
+
+        result = SPMatrix.toarray() / IVCSCMatrix
+
+        assert np.allclose(result.sum(), IVCSCMatrix.nnz, atol=epsilon)
 
 
+    # def testAddVCSC(self, SPMatrix, VCSCMatrix):
+    #     result = SPMatrix + VCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() + VCSCMatrix.tocsc().toarray(), atol=epsilon)
 
+    # def testAddIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     result = SPMatrix + IVCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() + IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # def testSubVCSC(self, SPMatrix, VCSCMatrix):
+    #     result = SPMatrix - VCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() - VCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # def testSubIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     result = SPMatrix - IVCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() - IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # def testMulVCSC(self, SPMatrix, VCSCMatrix):
+    #     result = SPMatrix * VCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() * VCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # def testMulIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     result = SPMatrix * IVCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() * IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # def testDivVCSC(self, SPMatrix, VCSCMatrix):
+    #     result = SPMatrix / VCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() / VCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # def testDivIVCSC(self, SPMatrix, IVCSCMatrix):
+    #     result = SPMatrix / IVCSCMatrix
+    #     assert np.allclose(result, SPMatrix.toarray() / IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+    
 
     # def testSlice(self, SPMatrix, VCSCMatrix):
     #     if SPMatrix.shape[1] // 2 == 0:

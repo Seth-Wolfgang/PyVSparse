@@ -1,7 +1,7 @@
 include(FetchContent)
 
 cmake_minimum_required(VERSION 3.15...3.26)
-add_compile_options(-O2 -fopenmp)
+add_compile_options(-O2 -fopenmp -w)
 
 project(PyVSparse)
 set(CMAKE_CXX_STANDARD 17)
@@ -18,10 +18,10 @@ FetchContent_Declare(
     GIT_TAG v2.11.1
     SOURCE_DIR ${SOURCE_DIR}/pybind11)
 
-FetchContent_Declare(
-    Eigen
-    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-    SOURCE_DIR ${SOURCE_DIR}/eigen)
+# FetchContent_Declare(
+#     Eigen
+#     GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+#     SOURCE_DIR ${SOURCE_DIR}/eigen)
 
 
 set(PYBIND11_FINDPYTHON ON)
@@ -30,7 +30,7 @@ find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 FetchContent_MakeAvailable(pybind11)
 
-include_directories(${IVSPARSE_DEV_DIR} ${IVSPARSE_DIR} ${SOURCE_DIR}/eigen)
+include_directories(${IVSPARSE_DEV_DIR} ${IVSPARSE_DIR} ${IVSPARSE_DEV_DIR}/eigen)
 link_directories(${IVSPARSE_DIR} ${IVSPARSE_DEV_DIR})
 add_library(IVSparse STATIC ${IVSPARSE_DIR}/SparseMatrix )
 set_target_properties(IVSparse PROPERTIES LINKER_LANGUAGE CXX)
