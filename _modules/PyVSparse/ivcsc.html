@@ -15,7 +15,7 @@
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../../_static/documentation_options.js?v=6c02275b"></script>
-        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -87,7 +87,6 @@
 <div class="viewcode-block" id="IVCSC.__init__">
 <a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spmat</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;col&quot;</span><span class="p">):</span> <span class="c1"># add scipySparseMat: scipyFormat as type hint</span>
-
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Index-and Value-Compressed Sparse Column is a read-only sparse matrix format optimzed for redundant data.</span>
 <span class="sd">        See README.md for more information. </span>
@@ -167,6 +166,9 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input matrix must be a string or a scipy.sparse matrix&quot;</span><span class="p">)</span></div>
 
         
+    <span class="n">__numpy_ufunc__</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Numpy up to 13.0</span>
+    <span class="n">__array_ufunc__</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Numpy 13.0 and above</span>
+
 <div class="viewcode-block" id="IVCSC.fromIVCSC">
 <a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.fromIVCSC">[docs]</a>
     <span class="k">def</span> <span class="nf">fromIVCSC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ivcsc</span><span class="p">:</span> <span class="n">IVCSC</span><span class="p">):</span>
@@ -442,9 +444,9 @@
 <span class="sd">        :rtype: Tuple[np.uint32, np.uint32]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>    </div>
 
-    
+
 <div class="viewcode-block" id="IVCSC.__imul__">
 <a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__imul__">[docs]</a>
     <span class="k">def</span> <span class="fm">__imul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IVCSC</span><span class="p">:</span>
@@ -469,33 +471,153 @@
     
 <div class="viewcode-block" id="IVCSC.__mul__">
 <a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__mul__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Multiplication of the matrix by a:</span>
 <span class="sd">        - scalar</span>
-<span class="sd">        - dense numpy matrix or vector</span>
 
 <span class="sd">        If the input is a scalar, then the matrix returned will be a IVCSC matrix.</span>
-<span class="sd">        Else, the matrix returned will be a dense numpy matrix or vector.</span>
 
 <span class="sd">        :param other: The value or object to multiply the matrix by</span>
-<span class="sd">        :type other: Union[int, float, np.ndarray]</span>
+<span class="sd">        :type other: Union[int, float]</span>
 <span class="sd">        :return: The matrix multiplied by the input</span>
-<span class="sd">        :rtype: union[IVCSC, np.ndarray]</span>
-<span class="sd">        :raises TypeError: If the input is not a scalar or numpy array</span>
+<span class="sd">        :rtype: union[IVCSC]</span>
+<span class="sd">        :raises TypeError: If the input is not a scalar</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
-            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">temp</span>
-        <span class="k">elif</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span> <span class="c1"># Scalar</span>
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">*</span> <span class="n">other</span>
             <span class="k">return</span> <span class="n">result</span>
+        <span class="k">elif</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Matrix dimensions do not match&quot;</span><span class="p">)</span>
+            
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">coeffMul</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">temp</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot multiply IVCSC by &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span></div>
 
+
+
+<div class="viewcode-block" id="IVCSC.__matmul__">
+<a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__matmul__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__matmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multiplication of the matrix by a:</span>
+<span class="sd">        - dense matrix</span>
+<span class="sd"> </span>
+<span class="sd">        The matrix returned will be a dense numpy matrix or vector.</span>
+
+<span class="sd">        :param other: The object to multiply the matrix by</span>
+<span class="sd">        :type other: Union[np.ndarray]</span>
+<span class="sd">        :return: The matrix multiplied by the input</span>
+<span class="sd">        :rtype: union[np.ndarray]</span>
+<span class="sd">        :raises TypeError: If the input is not a numpy array</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span> <span class="c1"># Dense numpy matrix or vector</span>
+            <span class="n">temp</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">@</span> <span class="n">other</span>
+            <span class="k">return</span> <span class="n">temp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot multiply IVCSC by &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IVCSC</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rmatmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__matmul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IVCSC.__radd__">
+<a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__radd__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Coefficient-wise addition of the matrix by a:</span>
+<span class="sd">        - dense matrix</span>
+
+<span class="sd">        Becuase IVCSC is read-only, the matrix returned will be a dense numpy matrix or vector.</span>
+<span class="sd">        This is a right addition operation: A + IVCSC</span>
+
+<span class="sd">        The matrix returned will be a dense numpy matrix or vector.</span>
+
+<span class="sd">        :param other: The object to add to the matrix</span>
+<span class="sd">        :type other: Union[np.ndarray, int, float]</span>
+<span class="sd">        :return: The matrix added to the input</span>
+<span class="sd">        :rtype: union[np.ndarray]</span>
+<span class="sd">        :raises TypeError: If the input is not a numpy array, int, or float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+     
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Matrix dimensions do not match&quot;</span><span class="p">)</span>       
+            <span class="n">temp</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">coeffAdd</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">temp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot add IVCSC to &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="IVCSC.__rsub__">
+<a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__rsub__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Coefficient-wise subtraction of the matrix by a:</span>
+<span class="sd">        - dense matrix</span>
+
+<span class="sd">        Becuase IVCSC is read-only, the matrix returned will be a dense numpy matrix or vector.</span>
+<span class="sd">        This is a right subtraction operation: A - IVCSC</span>
+
+<span class="sd">        The matrix returned will be a dense numpy matrix or vector.</span>
+
+<span class="sd">        :param other: The object to subtract from the matrix</span>
+<span class="sd">        :type other: Union[np.ndarray, int, float]</span>
+<span class="sd">        :return: The matrix subtracted from the input</span>
+<span class="sd">        :rtype: union[np.ndarray]</span>
+<span class="sd">        :raises TypeError: If the input is not a numpy array, int, or float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Matrix dimensions do not match&quot;</span><span class="p">)</span>
             
+            <span class="n">temp</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">coeffSub</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">temp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot subtract IVCSC from &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span></div>
+
+        
+<div class="viewcode-block" id="IVCSC.__rtruediv__">
+<a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__rtruediv__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__rtruediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Coefficient-wise division of the matrix by a:</span>
+<span class="sd">        - Dense matrix</span>
+
+<span class="sd">        Becuase IVCSC is read-only, the matrix returned will be a dense numpy matrix or vector.</span>
+<span class="sd">        This is a right division operation: A / IVCSC</span>
+
+<span class="sd">        The matrix returned will be a dense numpy matrix or vector.</span>
+
+<span class="sd">        :param other: The object to divide the matrix by</span>
+<span class="sd">        :type other: Union[int, float]</span>
+<span class="sd">        :return: The matrix divided by the input</span>
+<span class="sd">        :rtype: union[np.ndarray]</span>
+<span class="sd">        :raises TypeError: If the input is not a scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Matrix dimensions do not match&quot;</span><span class="p">)</span>
+            
+            <span class="n">temp</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">coeffDiv</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">temp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot divide IVCSC by &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span></div>
+
+        
+
 <div class="viewcode-block" id="IVCSC.__eq__">
 <a class="viewcode-back" href="../../api/IVCSC.html#PyVSparse.IVCSC.__eq__">[docs]</a>
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
