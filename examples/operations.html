@@ -117,8 +117,8 @@
 Sparse * Sparse operations are not supported.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-<span class="n">dense_numpy_array1</span> <span class="o">=</span> <span class="n">vcsc</span> <span class="o">*</span> <span class="n">vector</span>
-<span class="n">dense_numpy_array2</span> <span class="o">=</span> <span class="n">ivcsc</span> <span class="o">*</span> <span class="n">vector</span>
+<span class="n">dense_numpy_array1</span> <span class="o">=</span> <span class="n">vcsc</span> <span class="o">@</span> <span class="n">vector</span>
+<span class="n">dense_numpy_array2</span> <span class="o">=</span> <span class="n">ivcsc</span> <span class="o">@</span> <span class="n">vector</span>
 </pre></div>
 </div>
 </section>
@@ -130,8 +130,8 @@ SpMM is supported and returns a dense numpy array.</p>
 <p class="admonition-title">Note</p>
 <p>The <cite>*</cite> operator is used for SpMM, unlike the <cite>*</cite> operator in scipy (which uses <cite>&#64;</cite>).</p>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dense_numpy_array3</span> <span class="o">=</span> <span class="n">vcsc</span> <span class="o">*</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span> <span class="c1"># toarray() creates a dense numpy array</span>
-<span class="n">dense_numpy_array4</span> <span class="o">=</span> <span class="n">ivcsc</span> <span class="o">*</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dense_numpy_array3</span> <span class="o">=</span> <span class="n">vcsc</span> <span class="o">@</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span> <span class="c1"># toarray() creates a dense numpy array</span>
+<span class="n">dense_numpy_array4</span> <span class="o">=</span> <span class="n">ivcsc</span> <span class="o">@</span> <span class="n">csc_mat</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -222,6 +222,9 @@ Unfortunately, transpose is very slow becasue of how the data is stored.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">ivcsc</span><span class="o">.</span><span class="n">trace</span><span class="p">())</span>
 </pre></div>
 </div>
+</section>
+<section id="right-coefficient-wise-arithmetic-operations">
+<h2>Right Coefficient-Wise Arithmetic Operations<a class="headerlink" href="#right-coefficient-wise-arithmetic-operations" title="Link to this heading"></a></h2>
 </section>
 </section>
 
