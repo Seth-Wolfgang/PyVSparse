@@ -40,8 +40,8 @@ Sparse * Sparse operations are not supported.
     
     vector = np.array([1, 2, 3], dtype=np.float32)
 
-    dense_numpy_array1 = vcsc * vector
-    dense_numpy_array2 = ivcsc * vector
+    dense_numpy_array1 = vcsc @ vector
+    dense_numpy_array2 = ivcsc @ vector
 
 
 Matrix Multiplication
@@ -55,8 +55,8 @@ SpMM is supported and returns a dense numpy array.
 
 ..  code-block:: python
     
-    dense_numpy_array3 = vcsc * csc_mat.toarray() # toarray() creates a dense numpy array
-    dense_numpy_array4 = ivcsc * csc_mat.toarray()
+    dense_numpy_array3 = vcsc @ csc_mat.toarray() # toarray() creates a dense numpy array
+    dense_numpy_array4 = ivcsc @ csc_mat.toarray()
 
 Transpose
 ---------
@@ -153,3 +153,42 @@ Trace
     
     print(vcsc.trace())
     print(ivcsc.trace())
+
+
+Right Coefficient-Wise Arithmetic Operations
+---------------------------------------------
+
+..  code-block:: python
+    array = np.random.rand(3, 3)
+    SPMatrix = sp.sparse.csc_matrix(array)
+    VCSCMatrix = PyVSparse.VCSC(SPMatrix)
+    IVCSCMatrix = PyVSparse.IVCSC(SPMatrix)
+
+    # Right addition
+    result = array + VCSCMatrix
+    result = SPMatrix.toarray() + IVCSCMatrix
+
+    assert np.allclose(result, SPMatrix.toarray() + VCSCMatrix.tocsc().toarray(), atol=epsilon)
+    assert np.allclose(result, SPMatrix.toarray() + IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # Right subtraction
+    result = SPMatrix.toarray() - VCSCMatrix
+    result = SPMatrix.toarray() - IVCSCMatrix
+
+    assert np.allclose(result, SPMatrix.toarray() - VCSCMatrix.tocsc().toarray(), atol=epsilon)
+    assert np.allclose(result, SPMatrix.toarray() - IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # Right Coefficient-Wise multiplication
+    result = SPMatrix.toarray() * VCSCMatrix
+    result = SPMatrix.toarray() * IVCSCMatrix
+
+    assert np.allclose(result, SPMatrix.toarray() * VCSCMatrix.tocsc().toarray(), atol=epsilon)
+    assert np.allclose(result, SPMatrix.toarray() * IVCSCMatrix.tocsc().toarray(), atol=epsilon)
+
+    # Right Coefficient-Wise division
+    result = SPMatrix.toarray() / VCSCMatrix
+    result = SPMatrix.toarray() / IVCSCMatrix
+
+    # All values should be 1 , so sum == nnz
+    assert np.allclose(result.sum(), VCSCMatrix.nnz, atol=epsilon)
+    assert np.allclose(result.sum(), IVCSCMatrix.nnz, atol=epsilon)

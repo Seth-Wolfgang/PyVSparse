@@ -239,37 +239,41 @@ void declareIVCSCOperators(py::module& m, py::class_<IVSparse::IVCSC<T, isColMaj
         return eigenTemp;
     }, py::is_operator(),
         py::keep_alive<1, 2>(),
-        py::return_value_policy::copy);
+        py::return_value_policy::take_ownership);
 
 
     mat.def("__matmul__", [](IVSparse::IVCSC<T, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
-        // const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> b = a;
-        #ifdef IVSPARSE_DEBUG
+                #ifdef IVSPARSE_DEBUG
         // check that the matrix is the correct size
         if (mat.rows() != self.cols())
             throw std::invalid_argument(
                 "The left matrix must have the same # of rows as columns in the right "
                 "matrix!");
         #endif
-        Eigen::Matrix<T, -1, -1> newMatrix = Eigen::Matrix<T, -1, -1>::Zero(self.outerSize(), self.rows());
+
+        Eigen::Matrix<T, -1, -1, !isColMajor> newMatrix = Eigen::Matrix<T, -1, -1, isColMajor>::Zero(mat.cols(), self.rows());
         Eigen::Matrix<T, -1, -1> matTranspose = mat.transpose();
-        // Fix Parallelism issue (race condition because of partial sums and
-        // orientation of Sparse * Dense)
-        for (uint32_t col = 0; col < self.outerSize(); col++) {
-            for (typename IVSparse::IVCSC<T, isColMajor>::InnerIterator matIter(self, col); matIter; ++matIter) {
+        std::vector<std::mutex> mutexList(self.innerSize());
+
+        #pragma omp parallel for
+        for (uint32_t i = 0; i < self.outerSize(); ++i) {
+            for (typename IVSparse::IVCSC<T, isColMajor>::InnerIterator matIter(self, i); matIter; ++matIter) {
+                std::lock_guard<std::mutex> lock(mutexList[matIter.getIndex()]);
                 if constexpr (isColMajor) {
-                    newMatrix.col(matIter.getIndex()) += matTranspose.col(col) * matIter.value();
+                    newMatrix.col(matIter.getIndex()) += matTranspose.col(i) * matIter.value();
                 }
                 else {
-                    newMatrix.col(col) += matTranspose.col(matIter.getIndex()) * matIter.value();
+                    newMatrix.col(i) += matTranspose.col(matIter.getIndex()) * matIter.value();
                 }
             }
         }
+
         newMatrix.transposeInPlace();
         return newMatrix;
     }, py::is_operator(),
         py::keep_alive<1, 2>(),
-        py::return_value_policy::copy);
+        py::return_value_policy::take_ownership);
+
     // mat.def("__mul__", [](IVSparse::IVCSC<T, isColMajor> self, Eigen::Ref<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a) {
     //     return self * a;
     //         }, py::is_operator(),

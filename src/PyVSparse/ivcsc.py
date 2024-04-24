@@ -402,8 +402,8 @@ class IVCSC:
     def __rmul__(self, other) -> IVCSC:
         return self.__mul__(other)
 
-    def __rmatmul__(self, other) -> np.ndarray:
-        return self.__matmul__(other)
+    # def __rmatmul__(self, other) -> np.ndarray:
+    #     return self.__matmul__(other)
 
     def __radd__(self, other):
         

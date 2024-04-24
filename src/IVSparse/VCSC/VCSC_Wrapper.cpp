@@ -149,7 +149,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         return eigenTemp;
     }, py::is_operator(),
         py::keep_alive<1, 2>(),
-        py::return_value_policy::copy);
+        py::return_value_policy::take_ownership);
 
 
     mat.def("__matmul__", [](IVSparse::VCSC<T, indexT, isColMajor> self, py::EigenDRef<Eigen::Matrix<T, -1, -1, !isColMajor>> mat) {
@@ -161,26 +161,30 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
                 "matrix!");
         #endif
 
-        Eigen::Matrix<T, -1, -1> newMatrix = Eigen::Matrix<T, -1, -1>::Zero(self.outerSize(), self.rows());
+        Eigen::Matrix<T, -1, -1, !isColMajor> newMatrix = Eigen::Matrix<T, -1, -1, isColMajor>::Zero(mat.cols(), self.rows());
         Eigen::Matrix<T, -1, -1> matTranspose = mat.transpose();
-        // Fix Parallelism issue (race condition because of partial sums and
-        // orientation of Sparse * Dense)
+        std::vector<std::mutex> mutexList(self.innerSize());
 
-        for (uint32_t col = 0; col < self.outerSize(); col++) {
-            for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator matIter(self, col); matIter; ++matIter) {
+        #pragma omp parallel for
+        for (uint32_t i = 0; i < self.outerSize(); ++i) {
+            for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator matIter(self, i); matIter; ++matIter) {
+                std::lock_guard<std::mutex> lock(mutexList[matIter.getIndex()]);
                 if constexpr (isColMajor) {
-                    newMatrix.col(matIter.getIndex()) += matTranspose.col(col) * matIter.value();
+                    newMatrix.col(matIter.getIndex()) += matTranspose.col(i) * matIter.value();
                 }
                 else {
-                    newMatrix.col(col) += matTranspose.col(matIter.getIndex()) * matIter.value();
+                    newMatrix.col(i) += matTranspose.col(matIter.getIndex()) * matIter.value();
                 }
             }
         }
+
         newMatrix.transposeInPlace();
+
         return newMatrix;
+        
     }, py::is_operator(),
         py::keep_alive<1, 2>(),
-        py::return_value_policy::copy);
+        py::return_value_policy::take_ownership);
 
     mat.def("__getitem__", [](IVSparse::VCSC<T, indexT, isColMajor>& self, std::tuple<size_t, size_t> index) {
         return self(std::get<0>(index), std::get<1>(index));

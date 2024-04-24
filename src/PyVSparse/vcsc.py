@@ -419,6 +419,7 @@ class VCSC:
 
 
     def __matmul__(self, other) -> np.ndarray:
+        
         """
         Multiplication of the matrix by a:
         - dense matrix
@@ -441,8 +442,8 @@ class VCSC:
     def __rmul__(self, other) -> VCSC:
         return self.__mul__(other)
 
-    def __rmatmul__(self, other) -> np.ndarray:
-        return self.__matmul__(other)
+    # def __rmatmul__(self, other) -> np.ndarray:
+    #     return self.__matmul__(other)
 
     def __radd__(self, other: np.ndarray):
         """
