@@ -35,8 +35,8 @@ jobs:
       # - name: Build dist
         # run: python3 -m build
 
-      - name: Check metadata
-        run:  python3 -m twine check dist/*
+      # - name: Check metadata
+        # run:  python3 -m twine check dist/*
 
       - name: Upload
         uses: pypa/gh-action-pypi-publish@release/v1
