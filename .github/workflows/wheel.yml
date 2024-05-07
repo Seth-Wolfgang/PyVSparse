@@ -32,11 +32,11 @@ jobs:
       - name: install twine
         run: python3 -m pip install twine
 
-      # - name: Build dist
-        # run: python3 -m build
+      - name: Build dist
+        run: python3 -m build
 
-      # - name: Check metadata
-        # run:  python3 -m twine check dist/*
+      - name: Check metadata
+        run:  python3 -m twine check dist/*
 
       - name: Upload
         uses: pypa/gh-action-pypi-publish@release/v1
