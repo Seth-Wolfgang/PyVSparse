@@ -166,7 +166,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         std::vector<std::mutex> mutexList(self.innerSize());
 
         #pragma omp parallel for
-        for (uint32_t i = 0; i < self.outerSize(); ++i) {
+        for (int64_t i = 0; i < self.outerSize(); ++i) {
             for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator matIter(self, i); matIter; ++matIter) {
                 std::lock_guard<std::mutex> lock(mutexList[matIter.getIndex()]);
                 if constexpr (isColMajor) {
@@ -203,7 +203,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         #ifdef IVSPARSE_HAS_OPENMP
         #pragma omp parallel for
         #endif
-        for (uint32_t i = 0; i < self.outerSize(); i++) {
+        for (int64_t i = 0; i < self.outerSize(); i++) {
             for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator it(self, i); it; ++it) {
                 result(it.row(), it.col()) += it.value();
             }
@@ -219,7 +219,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         #ifdef IVSPARSE_HAS_OPENMP
         #pragma omp parallel for
         #endif
-        for (uint32_t i = 0; i < self.outerSize(); ++i) {
+        for (int64_t i = 0; i < self.outerSize(); ++i) {
             for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator it(self, i); it; ++it) {
                 result(it.row(), it.col()) -= it.value();
             }
@@ -234,7 +234,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         #ifdef IVSPARSE_HAS_OPENMP
         #pragma omp parallel for
         #endif
-        for (uint32_t i = 0; i < self.outerSize(); ++i) {
+        for (int64_t i = 0; i < self.outerSize(); ++i) {
             for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator it(self, i); it; ++it) {
                 result(it.row(), it.col()) *= it.value();
             }
@@ -250,7 +250,7 @@ void declareVCSCOperators(py::module& m, py::class_<IVSparse::VCSC<T, indexT, is
         #ifdef IVSPARSE_HAS_OPENMP
         #pragma omp parallel for
         #endif
-        for (uint32_t i = 0; i < self.outerSize(); ++i) {
+        for (int64_t i = 0; i < self.outerSize(); ++i) {
             for (typename IVSparse::VCSC<T, indexT, isColMajor>::InnerIterator it(self, i); it; ++it) {
                 result(it.row(), it.col()) /= it.value();
             }
@@ -273,8 +273,17 @@ void declareVCSCFuncs(py::module& m, py::class_<IVSparse::VCSC<T, indexT, isColM
     }, py::return_value_policy::copy);
     mat.def("nonZeros", &IVSparse::VCSC<T, indexT, isColMajor>::nonZeros, py::return_value_policy::copy);
     mat.def("byteSize", &IVSparse::VCSC<T, indexT, isColMajor>::byteSize, py::return_value_policy::copy);
-    mat.def("write", &IVSparse::VCSC<T, indexT, isColMajor>::write, py::arg("filename"));
-    mat.def("read", &IVSparse::VCSC<T, indexT, isColMajor>::read, py::arg("filename"));
+    
+    // mat.def("write", &IVSparse::VCSC<T, indexT, isColMajor>::write, py::arg("filename"));
+    mat.def("write", [](IVSparse::VCSC<T, indexT, isColMajor>& self, std::string filename) {
+        self.write(filename.c_str());
+    });
+    
+    // mat.def("read", &IVSparse::VCSC<T, indexT, isColMajor>::read, py::arg("filename"));
+    mat.def("read", [](IVSparse::VCSC<T, indexT, isColMajor>& self, std::string filename) {
+        self.read(filename.c_str());
+    });
+    
     mat.def("print", &IVSparse::VCSC<T, indexT, isColMajor>::print);
     mat.def("coeff", &IVSparse::VCSC<T, indexT, isColMajor>::coeff, py::return_value_policy::copy, "Sets value at run of coefficient", py::arg("row").none(false), py::arg("col").none(false));
     mat.def("isColumnMajor", &IVSparse::VCSC<T, indexT, isColMajor>::isColumnMajor, py::return_value_policy::copy);

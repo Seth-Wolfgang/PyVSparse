@@ -935,5 +935,5 @@ class VCSC:
         for r, c, v in zip(spmat.row, spmat.col, spmat.data):
             coords.append((r, c, v))    
 
-        self.backend = eval(str(moduleName))(coords, self.rows, self.cols, spmat.nnz)
+        self.backend = eval(str(moduleName))(coords, self.rows, self.cols, len(coords))
         self.bytes: np.uint64 = self.backend.byteSize()

@@ -1,10 +1,15 @@
 include(FetchContent)
 
 cmake_minimum_required(VERSION 3.15...3.26)
-add_compile_options(-O2 -fopenmp -w)
+
+if (NOT (WIN32 OR MSVC))
+    add_compile_options(-O2 -fopenmp -w)
+else()
+    add_compile_options(/permissive)
+endif()
 
 project(PyVSparse)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -26,7 +31,7 @@ FetchContent_Declare(
 
 set(PYBIND11_FINDPYTHON ON)
 
-find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 FetchContent_MakeAvailable(pybind11)
 
@@ -50,7 +55,7 @@ endif()
 
 
 find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
+if(OpenMP_CXX_FOUND AND NOT MSVC)
     target_link_libraries(_PyVSparse  PUBLIC OpenMP::OpenMP_CXX)
     set_target_properties(_PyVSparse  PROPERTIES COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
 endif()
