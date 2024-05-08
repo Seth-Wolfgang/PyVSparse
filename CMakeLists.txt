@@ -21,6 +21,8 @@ set(WRAPPER_DIR "${SOURCE_DIR}/IVSparse")
 set(IVSPARSE_DEV_DIR "${PROJECT_ROOT}/src/IVSparse/IVSparse-dev")
 set(IVSPARSE_DIR "${IVSPARSE_DEV_DIR}/IVSparse")
 
+find_package(Python3 COMPONENTS REQUIRED Interpreter Development )
+
 FetchContent_Declare(
     pybind11
     GIT_REPOSITORY https://github.com/pybind/pybind11.git
@@ -35,13 +37,6 @@ FetchContent_Declare(
 
 set(PYBIND11_FINDPYTHON ON)
 
-if(SKBUILD)
-  set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
-  set(Python_INCLUDE_DIR "${PYTHON_INCLUDE_DIR}")
-  set(Python_LIBRARY "${PYTHON_LIBRARY}")
-endif()
-
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 FetchContent_MakeAvailable(pybind11)
 
