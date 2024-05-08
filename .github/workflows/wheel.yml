@@ -41,8 +41,17 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-  
+
+      # https://github.com/mypyc/mypy_mypyc-wheels/blob/d181820271c653e482838d9664fcd9c5e52766fb/.github/workflows/build.yml#L60
+      # Idea is from above link
+      - name: Checkout
+        shell: bash
+        run: |
+          git clone https://github.com/Seth-Wolfgang/PyVSparse.git --recurse-submodules
+          
       - uses: pypa/cibuildwheel@v2.17
+        with:
+          package-dir: pyvsparse
   
       - name: Upload wheels
         uses: actions/upload-artifact@v4
