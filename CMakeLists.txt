@@ -2,7 +2,11 @@ include(FetchContent)
 
 cmake_minimum_required(VERSION 3.15...3.26)
 
-if (NOT (WIN32 OR MSVC))
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(MACOSX TRUE)
+endif()
+
+if (NOT (WIN32 OR MSVC OR MACOSX))
     add_compile_options(-O2 -fopenmp -w)
 else()
     add_compile_options(/permissive)
