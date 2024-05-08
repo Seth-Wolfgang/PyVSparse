@@ -35,6 +35,12 @@ FetchContent_Declare(
 
 set(PYBIND11_FINDPYTHON ON)
 
+if(SKBUILD)
+  set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
+  set(Python_INCLUDE_DIR "${PYTHON_INCLUDE_DIR}")
+  set(Python_LIBRARY "${PYTHON_LIBRARY}")
+endif()
+
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 FetchContent_MakeAvailable(pybind11)
