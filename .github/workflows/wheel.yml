@@ -28,6 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Pull submodules
+        run: git submodule update --init --recursive
+
       - name: Build wheels
         run: pipx run cibuildwheel==2.17.0
 
