@@ -51,9 +51,6 @@ wheel.expand-macos-universal-tags = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/tests.py"]
-# filterwarnings = [
-    # "error",
-# ]
 
 [tool.cibuildwheel]
 test-command = "pytest {project}/tests/tests.py"
